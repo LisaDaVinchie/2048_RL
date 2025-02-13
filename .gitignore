@@ -1,5 +1,5 @@
 # Exclude the virtual environment
-venv_2048
+venv*
 
 # Exclude pycache
 **/__pycache__
