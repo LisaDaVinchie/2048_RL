@@ -1,0 +1,9 @@
+# Exclude the virtual environment
+venv_2048
+
+# Exclude pycache
+**/__pycache__
+
+# Exclude operating system files
+**/.DS_Store
+**/.DS_Store?
