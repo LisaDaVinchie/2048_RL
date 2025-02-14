@@ -18,10 +18,14 @@
         "softmax": true
     },
     "actions": {
-        "up": "1 0 0 0",
-        "down": "0 1 0 0",
-        "left": "0 0 1 0",
-        "right": "0 0 0 1"
+        "up": 0,
+        "down": 1,
+        "left": 2,
+        "right": 3
+    },
+    "training": {
+        "n_episodes": 1000,
+        "print_every": 100
     }
 
 }
