@@ -3,8 +3,13 @@ PYTHON = $(shell which python3)
 
 SRC_FOLDER = $(BASE_FOLDER)/src
 TEST_FOLDER = $(BASE_FOLDER)/test
+PARAMS_FILE = $(SRC_FOLDER)/params.json
 
-.PHONY: test
+.PHONY: train test
+
+train:
+	@echo "Training model..."
+	$(PYTHON) $(SRC_FOLDER)/train_agent.py --params $(PARAMS_FILE)
 
 test:
 	@echo "Running tests..."
