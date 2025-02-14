@@ -3,15 +3,17 @@ import random
 
 class Game2048_env:
     def __init__(self, size: int=4):
+        "Initialize grid size and grid"
         self.size = size
         self.grid = np.zeros((size, size), dtype=int)
         
     def reset(self):
+        """Reset the grid and add a new tile"""
         self.grid = np.zeros((self.size, self.size), dtype=int)
-        self.add_new_tile()
+        self._add_new_tile()
         return self.grid
     
-    def add_new_tile(self, grid: np.ndarray) -> np.ndarray:
+    def _add_new_tile(self, grid: np.ndarray) -> np.ndarray:
         """Add a new tile in the grid"""
         empty_cells = list(zip(*np.where(grid == 0)))
         
@@ -21,7 +23,7 @@ class Game2048_env:
             grid[row, col] = random.choice([2, 4])
         return grid
     
-    def merge_tiles(self, line: np.ndarray) -> np.ndarray:
+    def _merge_tiles(self, line: np.ndarray) -> np.ndarray:
         """Merge the tiles of a specific row or column"""
         non_zero_tiles = [tile for tile in line if tile != 0]
         merged_line = []
@@ -41,28 +43,37 @@ class Game2048_env:
         merged_line += [0] * (len(line) - len(merged_line))
         return np.array(merged_line)
 
-    def move(self, grid: np.ndarray, direction):
+    def _move(self, grid: np.ndarray, direction: int):
         """Move the tiles of the grid in a specific direction"""
-        if direction == 'up':
+        # Up: transpose the grid
+        if direction == 0:
             grid = grid.T
-        elif direction == 'down':
+        # Down: transpose the grid and flip it
+        elif direction == 1:
             grid = np.flipud(grid).T
-        elif direction == 'left':
+        # Left: do nothing
+        elif direction == 2:
             pass
-        elif direction == 'right':
+        # Right: flip the grid
+        elif direction == 3:
             grid = np.fliplr(grid)
         else:
             raise ValueError('Invalid direction')
         
-        new_grid = np.array([self.merge_tiles(row) for row in grid])
+        new_grid = np.array([self._merge_tiles(row) for row in grid])
         
-        if direction == 'up':
+        # Undo the transposition or the flip
+        # Up: transpose the grid
+        if direction == 0:
             new_grid = new_grid.T
-        elif direction == 'down':
+        # Down: transpose the grid and flip it
+        elif direction == 1:
             new_grid = np.flipud(new_grid.T)
-        elif direction == 'left':
+        # Left: do nothing
+        elif direction == 2:
             pass
-        elif direction == 'right':
+        # Right: flip the grid
+        elif direction == 3:
             new_grid = np.fliplr(new_grid)
         return new_grid
 
@@ -71,24 +82,22 @@ class Game2048_env:
         if np.any(grid == 0):
             return False
         
-        n = self.size
-        
-        for row in range(n):
-            for col in range(n):
+        for row in range(self.size):
+            for col in range(self.size):
                 # Check if there are two adjacent tiles with the same value
-                if row + 1 < n and grid[row, col] == grid[row + 1, col]:
+                if row + 1 < self.size and grid[row, col] == grid[row + 1, col]:
                     return False
-                if col + 1 < n and grid[row, col] == grid[row, col + 1]:
+                if col + 1 < self.size and grid[row, col] == grid[row, col + 1]:
                     return False
                 
         return True
 
-    def game_step(self, grid: np.ndarray, direction: str) -> np.ndarray:
+    def step(self, grid: np.ndarray, direction: int) -> np.ndarray:
         """Play a step of the game"""
-        new_grid = self.move(grid, direction)
+        new_grid = self._move(grid, direction)
         
         # If the grid has not changed, return the grid as it is
         if np.array_equal(grid, new_grid):
             return grid
-        new_grid = self.add_new_tile(new_grid)
+        new_grid = self._add_new_tile(new_grid)
         return new_grid
