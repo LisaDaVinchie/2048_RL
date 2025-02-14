@@ -79,10 +79,11 @@ class DQN_Agent:
             loss = self.loss_function(current_q_values, target_q_values)
         return loss
     
-    def choose_action_(self, state: th.tensor, epsilon: float):
+    def choose_action(self, state: th.tensor, training: bool=True):
         """Choose an exploration or exploitation based on the epsilon-greedy policy
         and track if the action is exploration or exploitation"""
-        if np.random.rand() <= epsilon:
+        
+        if training and np.random.rand() <= self.epsilon:
             # Exploration: return a random number between 0 and 4
             # return a random number between 0 and 4
             action = np.random.choice(self.action_size)
