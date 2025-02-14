@@ -8,5 +8,20 @@
         "epsilon_min": 0.01,
         "buffer_maxlen": 2000,
         "batch_size": 32
+    },
+    "CNN_model": {
+        "grid_size": 4,
+        "action_size": 4,
+        "middle_channels": "64 64 64",
+        "kernel_sizes": "3 3 3",
+        "padding": "1 1 1",
+        "softmax": true
+    },
+    "actions": {
+        "up": "1 0 0 0",
+        "down": "0 1 0 0",
+        "left": "0 0 1 0",
+        "right": "0 0 0 1"
     }
+
 }
