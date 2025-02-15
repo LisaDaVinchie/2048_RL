@@ -10,7 +10,7 @@ class Game2048_env:
     def reset(self):
         """Reset the grid and add a new tile"""
         self.grid = np.zeros((self.size, self.size), dtype=int)
-        self._add_new_tile()
+        self._add_new_tile(self.grid)
         return self.grid
     
     def _add_new_tile(self, grid: np.ndarray) -> np.ndarray:
@@ -43,19 +43,19 @@ class Game2048_env:
         merged_line += [0] * (len(line) - len(merged_line))
         return np.array(merged_line)
 
-    def _move(self, grid: np.ndarray, direction: int):
+    def _move(self, grid: np.ndarray, action: int):
         """Move the tiles of the grid in a specific direction"""
         # Up: transpose the grid
-        if direction == 0:
+        if action == 0:
             grid = grid.T
         # Down: transpose the grid and flip it
-        elif direction == 1:
+        elif action == 1:
             grid = np.flipud(grid).T
         # Left: do nothing
-        elif direction == 2:
+        elif action == 2:
             pass
         # Right: flip the grid
-        elif direction == 3:
+        elif action == 3:
             grid = np.fliplr(grid)
         else:
             raise ValueError('Invalid direction')
@@ -64,16 +64,16 @@ class Game2048_env:
         
         # Undo the transposition or the flip
         # Up: transpose the grid
-        if direction == 0:
+        if action == 0:
             new_grid = new_grid.T
         # Down: transpose the grid and flip it
-        elif direction == 1:
+        elif action == 1:
             new_grid = np.flipud(new_grid.T)
         # Left: do nothing
-        elif direction == 2:
+        elif action == 2:
             pass
         # Right: flip the grid
-        elif direction == 3:
+        elif action == 3:
             new_grid = np.fliplr(new_grid)
         return new_grid
 
@@ -92,12 +92,17 @@ class Game2048_env:
                 
         return True
 
-    def step(self, grid: np.ndarray, direction: int) -> np.ndarray:
+    def step(self, action: int) -> tuple[np.ndarray, bool]:
         """Play a step of the game"""
-        new_grid = self._move(grid, direction)
+        is_game_over = False
+        new_grid = self._move(self.grid, action)
         
         # If the grid has not changed, return the grid as it is
-        if np.array_equal(grid, new_grid):
-            return grid
+        if np.array_equal(self.grid, new_grid):
+            return self.grid
         new_grid = self._add_new_tile(new_grid)
-        return new_grid
+        
+        # Check if the game is over
+        is_game_over = self.is_game_over(new_grid)
+        
+        return new_grid, is_game_over
