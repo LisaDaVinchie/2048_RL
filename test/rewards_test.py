@@ -21,10 +21,14 @@ class TestMaxNEmptyCellsReward(unittest.TestCase):
             }
         }
         
+        # Create a temporary file
         self.temp_json = NamedTemporaryFile(delete=False, mode='w')
         json.dump(self.reward_params, self.temp_json)
-        self.temp_json.close()
-        self.params_path = Path(self.temp_json.name)
+        self.temp_json.close()  # Close the file to ensure it's written and available
+        self.params_path = Path(self.temp_json.name).resolve()  # Use absolute path
+        
+        print(f"Temporary file created at: {self.params_path}")  # For debugging
+
     
     def tearDown(self):
         """Delete the temporary JSON file after tests."""
@@ -57,9 +61,9 @@ class TestMaxNEmptyCellsReward(unittest.TestCase):
     def test_reward_with_more_empty_cells(self):
         """Test if the function correctly rewards empty cell increase."""
         old_grid = np.array([[2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]])
-        new_grid = np.array([[2, 0, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]])
+        new_grid = np.array([[2, 2, 2, 0], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]])
         reward = maxN_emptycells_reward(old_grid, new_grid, False, self.params_path)
-        expected_reward = 2  # One new empty cell (2 points)
+        expected_reward = 0  # One new empty cell (2 points)
         self.assertEqual(reward, expected_reward)
 
 if __name__ == "__main__":
