@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 
 
-from src.utils.import_params_json import load_config
+from utils.import_params_json import load_config
 
 def maxN_emptycells_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: bool, params_path: Path, max_tile_reward: int = None, empty_cells_reward: int = None, game_over_penalty: int = None) -> int:
     """
