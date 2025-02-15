@@ -27,6 +27,11 @@
         "n_episodes": 1000,
         "learning_rate": 0.001,
         "print_every": 100
+    },
+    "rewards": {
+        "max_tile_reward": 10,
+        "empty_cells_reward": 2,
+        "game_over_penalty": 1000
     }
 
 }
