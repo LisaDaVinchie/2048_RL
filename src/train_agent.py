@@ -1,6 +1,7 @@
 import torch as th
 import argparse
 from pathlib import Path
+import json
 
 from utils.import_params_json import load_config
 from agent_class import DQN_Agent # Import the DQN_Agent class
@@ -10,9 +11,16 @@ from game_class import Game2048_env # Import the game class
 # Load the configuration file
 parser = argparse.ArgumentParser()
 parser.add_argument('--params', type = Path, required=True, help = "Path to the JSON file containing the parameters.")
+parser.add_argument('--paths', type = Path, required=True, help = "Path to the JSON file containing the paths.")
 args = parser.parse_args()
+paths_file_path = args.paths
+
+with open(paths_file_path) as f:
+    paths = json.load(f)
+final_score_path = paths["final_score_path"]
+
 params_file_path = args.params
-config = load_config(params_file_path, ["agent", "CNN_model"])
+config = load_config(params_file_path, ["agent", "CNN_model", "training"])
 
 # Initialise the model
 grid_size: int = None
@@ -23,12 +31,16 @@ padding: list = None
 locals().update(config["CNN_model"])  # Add variables to the local namespace
 model = CNN_model(grid_size, action_size, middle_channels, kernel_sizes, padding)
 
+learning_rate: float = None
+n_episodes: int = None
+print_every: int = None
+locals().update(config["training"])
+
 # Choose loss and optimizer
 loss_function = th.nn.MSELoss()
-optimizer = th.optim.Adam
+optimizer = th.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Initialise the agent
-n_episodes: int = None
 state_size: int = None
 action_size: int = None
 gamma: float = None
@@ -61,6 +73,8 @@ for episode in range(n_episodes):
         # Choose an action
         action, is_exploratory = agent.choose_action(state, training=True)
         
+        print
+        
         # Take the action and observe the next state and reward
         next_state, reward, done = game_env.step(action)
         
@@ -77,3 +91,8 @@ for episode in range(n_episodes):
         
     # Train the model
     agent.train_step()
+    
+# Save the final scores to a file
+with open('final_scores.txt', 'w') as f:
+    for score in final_scores:
+        f.write(f"{score}\n")
