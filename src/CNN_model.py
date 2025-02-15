@@ -46,16 +46,3 @@ class CNN_model(nn.Module):
             return F.softmax(x, dim=1)
         else:
             return x
-    
-sample_matrix = th.randn(1, 1, 4, 4)
-
-print("Input matrix:")
-print(sample_matrix)
-print()
-
-model = CNN_model(grid_size=4, action_size=4)
-
-with th.no_grad():
-    output = model(sample_matrix)
-
-print(output)
