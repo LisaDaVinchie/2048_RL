@@ -1,11 +1,15 @@
 import numpy as np
 import random
+from typing import Callable
+from pathlib import Path
 
 class Game2048_env:
-    def __init__(self, size: int=4):
+    def __init__(self, params_path: Path, reward_function: Callable, size: int=4):
         "Initialize grid size and grid"
         self.size = size
         self.grid = np.zeros((size, size), dtype=int)
+        self.reward_function = reward_function
+        self.params_path = params_path
         
     def reset(self):
         """Reset the grid and add a new tile"""
@@ -105,4 +109,6 @@ class Game2048_env:
         # Check if the game is over
         is_game_over = self.is_game_over(new_grid)
         
-        return new_grid, is_game_over
+        reward = self.reward_function(self.grid, new_grid, is_game_over, self.params_path)
+        
+        return new_grid, reward, is_game_over
