@@ -5,7 +5,6 @@ import os
 
 # Add the parent directory to the path so that we can import the game module
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-print(f"\n Imported path\n{sys.path}\n")
 
 from src.game import game_step, move, is_game_over
 
