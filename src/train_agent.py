@@ -7,6 +7,7 @@ from utils.import_params_json import load_config
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from CNN_model import CNN_model # Import the neural network model class
 from game_class import Game2048_env # Import the game class
+from rewards import maxN_emptycells_reward
 
 # Load the configuration file
 parser = argparse.ArgumentParser()
@@ -30,6 +31,7 @@ kernel_sizes: list = None
 padding: list = None
 locals().update(config["CNN_model"])  # Add variables to the local namespace
 model = CNN_model(grid_size, action_size, middle_channels, kernel_sizes, padding)
+print("Model initialised\n")
 
 learning_rate: float = None
 n_episodes: int = None
@@ -57,13 +59,17 @@ agent = DQN_Agent(model, loss_function, optimizer,
                   buffer_maxlen, batch_size)
 
 locals().update(config["agent"])
+print("Agent initialised\n")
 
 # Initialise the game environment
-game_env = Game2048_env(grid_size)
+game_env = Game2048_env(params_file_path, maxN_emptycells_reward, grid_size)
+print("Game environment initialised\n")
+
 final_scores = []
 
+print("Training the agent\n")
 for episode in range(n_episodes):
-    
+    print(f"Episode {episode + 1}/{n_episodes}")
     state = game_env.reset() # Put the grid in the initial state
     done = False # Initialize the done variable
     total_reward = 0 # Initialize the total reward
@@ -89,6 +95,7 @@ for episode in range(n_episodes):
         
     # Train the model
     agent.train_step()
+    print(f"Total reward: {total_reward}\n")
     
 # Save the final scores to a file
 with open('final_scores.txt', 'w') as f:
