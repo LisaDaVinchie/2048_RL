@@ -1,21 +1,16 @@
 import numpy as np
 import random
-from typing import Callable
-from pathlib import Path
 
 class Game2048_env:
-    def __init__(self, params_path: Path, reward_function: Callable, size: int=4):
+    def __init__(self, size: int=4):
         "Initialize grid size and grid"
         self.size = size
-        self.grid = np.zeros((size, size), dtype=int)
-        self.reward_function = reward_function
-        self.params_path = params_path
         
     def reset(self):
         """Reset the grid and add a new tile"""
-        self.grid = np.zeros((self.size, self.size), dtype=int)
-        self._add_new_tile(self.grid)
-        return self.grid
+        grid = np.zeros((self.size, self.size), dtype=int)
+        self._add_new_tile(grid)
+        return grid
     
     def _add_new_tile(self, grid: np.ndarray) -> np.ndarray:
         """Add a new tile in the grid"""
@@ -47,39 +42,30 @@ class Game2048_env:
         merged_line += [0] * (len(line) - len(merged_line))
         return np.array(merged_line)
 
-    def _move(self, grid: np.ndarray, action: int):
-        """Move the tiles of the grid in a specific direction"""
-        # Up: transpose the grid
-        if action == 0:
-            grid = grid.T
-        # Down: transpose the grid and flip it
-        elif action == 1:
-            grid = np.flipud(grid).T
-        # Left: do nothing
-        elif action == 2:
-            pass
-        # Right: flip the grid
-        elif action == 3:
-            grid = np.fliplr(grid)
+    def _move(self, grid: np.ndarray, action: int) -> np.ndarray:
+        """Move the tiles of the grid in a specific direction."""
+        new_grid = np.zeros((self.size, self.size), dtype=int)
+        
+        if action == 0:  # Up
+            for col in range(self.size):
+                new_grid[:, col] = self._merge_tiles(grid[:, col])  # Merge column-wise
+                
+        elif action == 1:  # Down
+            for col in range(self.size):
+                new_grid[:, col] = np.flip(self._merge_tiles(np.flip(grid[:, col])))  # Reverse merge for downward motion
+                
+        elif action == 2:  # Left
+            for row in range(self.size):
+                new_grid[row, :] = self._merge_tiles(grid[row, :])  # Merge row-wise
+
+        elif action == 3:  # Right
+            for row in range(self.size):
+                new_grid[row, :] = np.flip(self._merge_tiles(np.flip(grid[row, :])))  # Reverse merge for rightward motion
         else:
-            raise ValueError('Invalid direction')
+            raise ValueError("Invalid direction")
         
-        new_grid = np.array([self._merge_tiles(row) for row in grid])
-        
-        # Undo the transposition or the flip
-        # Up: transpose the grid
-        if action == 0:
-            new_grid = new_grid.T
-        # Down: transpose the grid and flip it
-        elif action == 1:
-            new_grid = np.flipud(new_grid.T)
-        # Left: do nothing
-        elif action == 2:
-            pass
-        # Right: flip the grid
-        elif action == 3:
-            new_grid = np.fliplr(new_grid)
         return new_grid
+
 
     def is_game_over(self, grid: np.ndarray) -> bool:
         """Check if the game is over"""
@@ -96,20 +82,17 @@ class Game2048_env:
                 
         return True
 
-    def step(self, action: int) -> tuple[np.ndarray, int, bool]:
+    def step(self, old_grid: np.ndarray, action: int) -> tuple[np.ndarray, bool]:
         """Play a step of the game"""
         
         # Calculate the new grid after the move
-        new_grid = self._move(self.grid, action)
+        new_grid = self._move(old_grid, action)
         # Check if the game is over
         is_game_over = self.is_game_over(new_grid)
         
         # Check if the grid has changed
-        if not np.array_equal(self.grid, new_grid):
+        if not np.array_equal(old_grid, new_grid):
             # If the grid has changed, add a new tile and check if the game is over
             new_grid = self._add_new_tile(new_grid)
         
-        # No need to add tiles if the grid did not change
-        reward = self.reward_function(self.grid, new_grid, is_game_over, self.params_path)
-        
-        return new_grid, reward, is_game_over
+        return new_grid, is_game_over
