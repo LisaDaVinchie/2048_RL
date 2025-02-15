@@ -73,8 +73,6 @@ for episode in range(n_episodes):
         # Choose an action
         action, is_exploratory = agent.choose_action(state, training=True)
         
-        print
-        
         # Take the action and observe the next state and reward
         next_state, reward, done = game_env.step(action)
         
