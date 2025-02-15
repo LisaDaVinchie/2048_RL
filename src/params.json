@@ -12,9 +12,9 @@
     "CNN_model": {
         "grid_size": 4,
         "action_size": 4,
-        "middle_channels": "64 64 64",
-        "kernel_sizes": "3 3 3",
-        "padding": "1 1 1",
+        "middle_channels": [64, 64, 64],
+        "kernel_sizes": [3, 3, 3],
+        "padding": [1, 1, 1],
         "softmax": true
     },
     "actions": {
@@ -25,6 +25,7 @@
     },
     "training": {
         "n_episodes": 1000,
+        "learning_rate": 0.001,
         "print_every": 100
     }
 
