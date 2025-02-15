@@ -1,12 +1,14 @@
 import torch as th
 from torch import nn
 from torch.nn import functional as F
+from typing import Tuple
 
 
 class CNN_model(nn.Module):
     def __init__(self, grid_size: int, action_size: int,
-                 middle_channels: list = [64, 64, 64],
-                 kernel_sizes: list=[3, 3, 3], padding: list = [1, 1, 1]):
+                 middle_channels: Tuple[int, int, int] = (64, 64, 64),
+                 kernel_sizes: Tuple[int, int, int] = (3, 3, 3),
+                 padding: Tuple[int, int, int] = (1, 1, 1)):
         super(CNN_model, self).__init__()
         
         final_grid_size = grid_size - sum(kernel_sizes) + len(kernel_sizes) + 2 * sum(padding)
