@@ -96,19 +96,20 @@ class Game2048_env:
                 
         return True
 
-    def step(self, action: int) -> tuple[np.ndarray, bool]:
+    def step(self, action: int) -> tuple[np.ndarray, int, bool]:
         """Play a step of the game"""
-        is_game_over = False
+        
+        # Calculate the new grid after the move
         new_grid = self._move(self.grid, action)
-        
-        # If the grid has not changed, return the grid as it is
-        if np.array_equal(self.grid, new_grid):
-            return self.grid
-        new_grid = self._add_new_tile(new_grid)
-        
         # Check if the game is over
         is_game_over = self.is_game_over(new_grid)
         
+        # Check if the grid has changed
+        if not np.array_equal(self.grid, new_grid):
+            # If the grid has changed, add a new tile and check if the game is over
+            new_grid = self._add_new_tile(new_grid)
+        
+        # No need to add tiles if the grid did not change
         reward = self.reward_function(self.grid, new_grid, is_game_over, self.params_path)
         
         return new_grid, reward, is_game_over
