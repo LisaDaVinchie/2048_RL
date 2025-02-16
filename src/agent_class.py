@@ -82,6 +82,7 @@ class DQN_Agent:
         
         # Q target
         with th.no_grad():
+            
             next_q_values = self.target_model(next_states).max(dim=1)[0]
             target_q_values = rewards + self.gamma * next_q_values * ~dones
         
@@ -100,7 +101,7 @@ class DQN_Agent:
         else:
             # Exploitation: return the action with the highest Q value
             with th.no_grad():
-                q_values = self.model(state.unsqueeze(0))
+                q_values = self.model(state)
             action = th.argmax(q_values).item()
             is_exploration = False
         return action, is_exploration
@@ -113,7 +114,7 @@ class DQN_Agent:
         """Save the model weights"""
         th.save(self.model.state_dict(), path)
         
-    def load (self, path):
+    def load(self, path):
         """Load the model weights"""
         self.model.load_state_dict(th.load(path))
         self.target_model.load_state_dict(self.model.state_dict())
