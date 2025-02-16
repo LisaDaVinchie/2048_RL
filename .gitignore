@@ -9,6 +9,7 @@ src/paths.json
 
 # Exclude results files
 data/results*
+figs/figure*
 
 # Exclude operating system files
 **/.DS_Store
