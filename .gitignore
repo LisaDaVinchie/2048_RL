@@ -7,6 +7,9 @@ venv*
 # Exclude the paths.json file
 src/paths.json
 
+# Exclude results files
+data/results*
+
 # Exclude operating system files
 **/.DS_Store
 **/.DS_Store?
