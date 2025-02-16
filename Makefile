@@ -7,7 +7,7 @@ DATA_FOLDER = $(BASE_FOLDER)/data
 PARAMS_FILE = $(SRC_FOLDER)/params.json
 PATHS_FILE = $(SRC_FOLDER)/paths.json
 
-
+# Name of the final result file
 EXT=.txt
 FINAL_RESULT_BASENAME = results
 # Find the next available filename
