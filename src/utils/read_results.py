@@ -15,8 +15,10 @@ def read_data(file_path: Path):
             final_scores = list(map(float, lines[i+1].split()))
         elif line.startswith("Max value reached:"):
             max_values = list(map(float, lines[i+1].split()))
+        elif line.startswith("Epsilon:"):
+            epsilon = list(map(float, lines[i+1].split()))
 
-    return final_scores, max_values
+    return final_scores, max_values, epsilon
 
 # Find the path with the greatest index
 def find_latest_file(basepath: Path, result_file_ext: str = ".txt") -> list:
