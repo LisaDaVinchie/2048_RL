@@ -2,12 +2,13 @@
     "agent":{
         "state_size": 16,
         "action_size": 4,
-        "gamma": 0.99,
+        "gamma": 0.95,
         "epsilon": 1.0,
-        "epsilon_decay": 0.995,
-        "epsilon_min": 0.01,
+        "epsilon_decay": 0.00001,
+        "epsilon_min": 0.3,
         "buffer_maxlen": 2000,
-        "batch_size": 32
+        "batch_size": 64,
+        "target_update_freq": 10
     },
     "CNN_model": {
         "grid_size": 4,
@@ -15,7 +16,7 @@
         "middle_channels": [64, 64, 64],
         "kernel_sizes": [3, 3, 3],
         "padding": [1, 1, 1],
-        "softmax": true
+        "softmax": false
     },
     "actions": {
         "up": 0,
@@ -29,9 +30,10 @@
         "print_every": 100
     },
     "rewards": {
-        "max_tile_reward": 10,
-        "empty_cells_reward": 2,
-        "game_over_penalty": 1000
+        "max_tile_reward": 500,
+        "empty_cells_reward": 5,
+        "game_over_penalty": 50,
+        "no_changes_penalty": 10
     }
 
 }
