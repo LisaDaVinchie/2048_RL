@@ -4,6 +4,7 @@ import random
 import torch as th
 import torch.nn as nn
 import copy
+import math
 
 class DQN_Agent:
     """Handles
@@ -61,33 +62,31 @@ class DQN_Agent:
         next_states = th.stack([exp[3] for exp in minibatch])
         dones = th.BoolTensor([exp[4] for exp in minibatch])
         
-        loss = self._compute_loss(states, actions, rewards, next_states, dones)
+        current_q_values, target_q_values = self.compute_Q_values(states, actions, rewards, next_states, dones)
+        self.loss = self.loss_function(current_q_values, target_q_values)
         
         # Compute the loss
         self.optimizer.zero_grad()
-        loss.backward()
+        self.loss.backward()
         self.optimizer.step()
         
         # Decay epsilon
         if self.epsilon > self.epsilon_min:
-            self.epsilon *= self.epsilon_decay
+            self.epsilon = self.epsilon_min + (self.epsilon - self.epsilon_min) * math.exp(-self.epsilon_decay * episode)
         
         if episode % self.target_update_freq == 0:
             self.update_target_model()
-        
-    def _compute_loss(self, states, actions, rewards, next_states, dones):
+
+    def compute_Q_values(self, states, actions, rewards, next_states, dones):
         """Compute the loss"""
         # Q pred
         current_q_values = self.model(states).gather(1, actions.unsqueeze(1)).squeeze(1)
         
         # Q target
         with th.no_grad():
-            
             next_q_values = self.target_model(next_states).max(dim=1)[0]
             target_q_values = rewards + self.gamma * next_q_values * ~dones
-        
-        loss = self.loss_function(current_q_values, target_q_values)
-        return loss
+        return current_q_values,target_q_values
     
     def choose_action(self, state: th.tensor, training: bool=True):
         """Choose an exploration or exploitation based on the epsilon-greedy policy
