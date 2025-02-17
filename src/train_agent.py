@@ -3,6 +3,7 @@ import numpy as np
 import argparse
 from pathlib import Path
 import json
+from time import time
 
 from utils.import_params_json import load_config
 from utils.visualize_game import print_grid, save_grid_to_file
@@ -10,6 +11,8 @@ from agent_class import DQN_Agent # Import the DQN_Agent class
 from CNN_model import CNN_model # Import the neural network model class
 from game_class import Game2048_env # Import the game class
 from rewards import maxN_emptycells_reward
+
+start_time = time()
 
 # Load the configuration file
 parser = argparse.ArgumentParser()
@@ -43,7 +46,7 @@ print_every: int = None
 locals().update(config["training"])
 
 # Choose loss and optimizer
-loss_function = th.nn.MSELoss()
+loss_function = th.nn.SmoothL1Loss()
 optimizer = th.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Initialise the agent
@@ -74,13 +77,14 @@ final_scores = []
 max_value_reached = []
 train_epsilon = []
 train_loss = []
-Q_values = []
+train_Q_values = []
 reward_function = maxN_emptycells_reward
 
 print("Training the agent\n")
 for episode in range(n_episodes):
     if (episode + 1) % print_every == 0:
         print(f"Episode {episode + 1}/{n_episodes}")
+        
     state = game_env.reset() # Put the grid in the initial state
     state = th.tensor(state, dtype=th.float32) # Convert the state to a tensor
     done = False # Initialize the done variable
@@ -114,6 +118,7 @@ for episode in range(n_episodes):
     
     train_epsilon.append(agent.epsilon)
     train_loss.append(agent.loss)
+    train_Q_values.append(agent.current_q_values)
     if (episode + 1) % print_every == 0:
         print(f"Total reward: {total_reward}\n")
     
@@ -140,9 +145,9 @@ with open(final_score_path, 'w') as f:
             f.write("\t")
     f.write("\n\n")
     f.write("Epsilon:\n")
-    for i, eps in enumerate(epsilon):
+    for i, eps in enumerate(train_epsilon):
         f.write(f"{eps}")
-        if i < len(epsilon) - 1:
+        if i < len(train_epsilon) - 1:
             f.write("\t")
     f.write("\n\n")
     f.write("Loss:\n")
@@ -151,9 +156,19 @@ with open(final_score_path, 'w') as f:
         if i < len(train_loss) - 1:
             f.write("\t")
     f.write("\n\n")
+    f.write("Q values:\n")
+    for i, q_values in enumerate(train_Q_values):
+        f.write(f"{q_values}")
+        if i < len(train_Q_values) - 1:
+            f.write("\t")
+    f.write("\n\n")
     
     f.write("Parameters:")
     f.write(json_str)
     
 print(f"Final scores saved to {final_score_path}\n")
+
+end_time = time()
+
+print(f"Training completed in {((end_time - start_time) / 60):.4f} minutes")
         
