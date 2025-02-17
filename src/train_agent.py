@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 
 from utils.import_params_json import load_config
+from utils.visualize_game import print_grid, save_grid_to_file
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from CNN_model import CNN_model # Import the neural network model class
 from game_class import Game2048_env # Import the game class
@@ -30,8 +31,10 @@ action_size: int = None
 middle_channels: list = None
 kernel_sizes: list = None
 padding: list = None
+softmax: bool = None
 locals().update(config["CNN_model"])  # Add variables to the local namespace
-model = CNN_model(grid_size, action_size, middle_channels, kernel_sizes, padding)
+print("Using softmax = ", softmax)
+model = CNN_model(grid_size, action_size, middle_channels, kernel_sizes, padding, softmax)
 print("Model initialised\n")
 
 learning_rate: float = None
@@ -52,12 +55,13 @@ epsilon_decay: float = None
 epsilon_min: float = None
 buffer_maxlen: int = None
 batch_size: int = None
+target_update_freq: int = None
 locals().update(config["agent"])  # Add variables to the local namespace
 
 agent = DQN_Agent(model, loss_function, optimizer,
                   state_size, action_size, gamma,
                   epsilon, epsilon_decay, epsilon_min,
-                  buffer_maxlen, batch_size)
+                  buffer_maxlen, batch_size, target_update_freq)
 
 locals().update(config["agent"])
 print("Agent initialised\n")
@@ -68,6 +72,9 @@ print("Game environment initialised\n")
 
 final_scores = []
 max_value_reached = []
+train_epsilon = []
+train_loss = []
+Q_values = []
 reward_function = maxN_emptycells_reward
 
 print("Training the agent\n")
@@ -104,6 +111,9 @@ for episode in range(n_episodes):
         
     # Train the model
     agent.train_step(episode)
+    
+    train_epsilon.append(agent.epsilon)
+    train_loss.append(agent.loss)
     if (episode + 1) % print_every == 0:
         print(f"Total reward: {total_reward}\n")
     
@@ -129,6 +139,19 @@ with open(final_score_path, 'w') as f:
         if i < len(max_value_reached) - 1:
             f.write("\t")
     f.write("\n\n")
+    f.write("Epsilon:\n")
+    for i, eps in enumerate(epsilon):
+        f.write(f"{eps}")
+        if i < len(epsilon) - 1:
+            f.write("\t")
+    f.write("\n\n")
+    f.write("Loss:\n")
+    for i, loss in enumerate(train_loss):
+        f.write(f"{loss}")
+        if i < len(train_loss) - 1:
+            f.write("\t")
+    f.write("\n\n")
+    
     f.write("Parameters:")
     f.write(json_str)
     
