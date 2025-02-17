@@ -26,17 +26,19 @@ class CNN_model(nn.Module):
                                kernel_size=kernel_sizes[0],
                                stride=strides[0],
                                padding=padding[0])
+        self.bn1 = nn.BatchNorm2d(middle_channels[0])
         self.conv2 = nn.Conv2d(in_channels=middle_channels[0],
                                out_channels=middle_channels[1],
                                kernel_size=kernel_sizes[1],
                                stride=strides[1],
                                padding=padding[1])
+        self.bn2 = nn.BatchNorm2d(middle_channels[1])
         self.conv3 = nn.Conv2d(in_channels=middle_channels[1],
                                out_channels=middle_channels[2],
                                kernel_size=kernel_sizes[2],
                                stride=strides[2],
                                padding=padding[2])
-        
+        self.bn3 = nn.BatchNorm2d(middle_channels[2])
         self.fc1 = nn.Linear(middle_channels[2] * final_grid_size * final_grid_size, 128)
         self.fc2 = nn.Linear(128, action_size)
         
@@ -44,9 +46,9 @@ class CNN_model(nn.Module):
         
     def forward(self, x: th.Tensor) -> th.Tensor:
         x = th.log2(x + 1)/11
-        x = self.activation(self.conv1(x))
-        x = self.activation(self.conv2(x))
-        x = self.activation(self.conv3(x))
+        x = self.activation(self.bn1(self.conv1(x)))
+        x = self.activation(self.bn2(self.conv2(x)))
+        x = self.activation(self.bn3(self.conv3(x)))
         x = x.view(x.size(0), -1)
         x = self.activation(self.fc1(x))
         x = self.fc2(x)
