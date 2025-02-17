@@ -12,12 +12,15 @@ FINAL_RESULT_BASENAME = results
 RESULT_FILE_EXT=.txt
 FIGS_BASENAME = figure
 FIGS_EXT=.png
+GRID_FILE_BASENAME = $(DATA_FOLDER)/grid
 
 
 # Name of the final result file
 
 # Find the nRESULT_FILE_EXT available filename
-FINAL_RESULT_PATH=$(shell i=0; while [ -e "$(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)")
+IDX=$(shell i=0; while [ -e "$(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
+FINAL_RESULT_PATH = $(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$(IDX)$(RESULT_FILE_EXT)
+GRID_FILE_PATH = $(GRID_FILE_BASENAME)_$(IDX).txt
 
 .PHONY: config train test plot help
 
@@ -28,7 +31,8 @@ config:
 	@echo "    \"result_file_ext\": \"$(RESULT_FILE_EXT)\"," >> $(PATHS_FILE)
 	@echo "    \"final_result_path\": \"$(FINAL_RESULT_PATH)\"," >> $(PATHS_FILE)
 	@echo "    \"figure_basename\": \"$(FIGS_FOLDER)/$(FIGS_BASENAME)\"," >> $(PATHS_FILE)
-	@echo "    \"figure_ext\": \"$(FIGS_EXT)\"" >> $(PATHS_FILE)
+	@echo "    \"figure_ext\": \"$(FIGS_EXT)\"," >> $(PATHS_FILE)
+	@echo "    \"grid_file_path\": \"$(GRID_FILE_PATH)\"" >> $(PATHS_FILE)
 	@echo "}" >> $(PATHS_FILE)
 
 train: config
