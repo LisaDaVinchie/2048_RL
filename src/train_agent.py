@@ -159,6 +159,7 @@ with open(final_score_path, 'w') as f:
     f.write("Q values:\n")
     for i, q_values in enumerate(train_Q_values):
         f.write(f"{q_values}")
+        f.write("\n")
         if i < len(train_Q_values) - 1:
             f.write("\t")
     f.write("\n\n")
