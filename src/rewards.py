@@ -40,7 +40,7 @@ def maxN_emptycells_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_o
     old_max = np.max(old_grid)
     new_max = np.max(new_grid)
     if new_max > old_max:
-        reward += new_max * max_tile_reward  # Bonus reward for increasing the max tile
+        reward += np.log2(new_max) * max_tile_reward  # Bonus reward for increasing the max tile
         
     # print("Max tile reward: ", new_max * max_tile_reward, flush=True)
     
