@@ -33,6 +33,8 @@ class DQN_Agent:
         self.epsilon_decay = epsilon_decay
         self.batch_size = batch_size
         self.target_update_freq = target_update_freq
+        self.loss = None
+        self.current_q_values = None
 
     def _clone_model(self, model: nn.Module) -> nn.Module:
         """Properly clones a PyTorch model."""
@@ -41,8 +43,7 @@ class DQN_Agent:
         model_clone.eval()  # Set to eval mode (optional but recommended)
         return model_clone
         
-    def store_to_buffer(self, state: th.tensor, action,
-                        reward, next_state: th.tensor, done: bool):
+    def store_to_buffer(self, state: th.tensor, action: int, reward: int, next_state: th.tensor, done: bool):
         """Store the experience to the replay buffer as (state, action, reward, next_state, done)"""
         self.replay_buffer.append((state, action, reward, next_state, done))
     
@@ -62,8 +63,8 @@ class DQN_Agent:
         next_states = th.stack([exp[3] for exp in minibatch])
         dones = th.BoolTensor([exp[4] for exp in minibatch])
         
-        current_q_values, target_q_values = self.compute_Q_values(states, actions, rewards, next_states, dones)
-        self.loss = self.loss_function(current_q_values, target_q_values)
+        self.current_q_values, target_q_values = self.compute_Q_values(states, actions, rewards, next_states, dones)
+        self.loss = self.loss_function(self.current_q_values, target_q_values)
         
         # Compute the loss
         self.optimizer.zero_grad()
@@ -77,16 +78,16 @@ class DQN_Agent:
         if episode % self.target_update_freq == 0:
             self.update_target_model()
 
-    def compute_Q_values(self, states, actions, rewards, next_states, dones):
-        """Compute the loss"""
+    def compute_Q_values(self, states: th.tensor, actions: th.tensor, rewards: th.tensor, next_states: th.tensor, dones: th.tensor):
+        """Compute the Q values for the current state and the target Q values"""
         # Q pred
-        current_q_values = self.model(states).gather(1, actions.unsqueeze(1)).squeeze(1)
+        current_q_values = self.model(states).gather(1, actions.long().unsqueeze(1)).squeeze(1)
         
         # Q target
         with th.no_grad():
-            next_q_values = self.target_model(next_states).max(dim=1)[0]
-            target_q_values = rewards + self.gamma * next_q_values * ~dones
-        return current_q_values,target_q_values
+            next_q_values = (self.target_model(next_states).max(dim=1)[0]) * (1 - dones.float())
+            target_q_values = rewards + self.gamma * next_q_values * (1 - dones.float())
+        return current_q_values, target_q_values
     
     def choose_action(self, state: th.tensor, training: bool=True):
         """Choose an exploration or exploitation based on the epsilon-greedy policy
