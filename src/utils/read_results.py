@@ -8,6 +8,8 @@ def read_data(file_path: Path):
     # Extract the values after each section header
     final_scores = []
     max_values = []
+    epsilon = []
+    loss = []
 
     # Iterate through lines
     for i, line in enumerate(lines):
@@ -17,8 +19,10 @@ def read_data(file_path: Path):
             max_values = list(map(float, lines[i+1].split()))
         elif line.startswith("Epsilon:"):
             epsilon = list(map(float, lines[i+1].split()))
+        elif line.startswith("Loss:"):
+            loss = list(map(float, lines[i+1].split()))
 
-    return final_scores, max_values, epsilon
+    return final_scores, max_values, epsilon, loss
 
 # Find the path with the greatest index
 def find_latest_file(basepath: Path, result_file_ext: str = ".txt") -> list:
