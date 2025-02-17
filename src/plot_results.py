@@ -28,28 +28,31 @@ else:
     file_path, IDX = find_latest_file(final_result_basename, result_file_ext)
 
 print(f"Reading data from: {file_path}")
-final_scores, max_values, epsilons = read_data(file_path)
+final_scores, max_values, epsilons, loss = read_data(file_path)
 
 print(f"Final scores shape: {len(final_scores)}")
 print(f"Max values shape: {len(max_values)}")
 
 # Plot the data
-fig, axs = plt.subplots(1, 3, figsize=(15, 5))
+fig, axs = plt.subplots(2, 2, figsize=(10, 10), sharex=True)
 
-axs[0].plot(final_scores)
-axs[0].set_title("Final Scores")
-axs[0].set_xlabel("Episode")
-axs[0].set_ylabel("Score")
+axs[0, 0].plot(final_scores)
+axs[0, 0].set_title("Final Scores")
+axs[0, 0].set_ylabel("Score")
 
-axs[1].plot(max_values)
-axs[1].set_title("Max Value reached")
-axs[1].set_xlabel("Episode")
-axs[1].set_ylabel("Value")
+axs[0, 1].plot(max_values)
+axs[0, 1].set_title("Max Value reached")
+axs[0, 1].set_ylabel("Value")
 
-axs[2].plot(epsilons)
-axs[2].set_title("Epsilon")
-axs[2].set_xlabel("Episode")
-axs[2].set_ylabel("Value")
+axs[1, 0].plot(epsilons)
+axs[1, 0].set_title("Epsilon")
+axs[1, 0].set_xlabel("Episode")
+axs[1, 0].set_ylabel("Value")
+
+axs[1, 1].plot(loss)
+axs[1, 1].set_title("Loss")
+axs[1, 1].set_xlabel("Episode")
+axs[1, 1].set_ylabel("Value")
 
 plt.tight_layout()
 
