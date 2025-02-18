@@ -2,14 +2,34 @@ import torch as th
 from torch import nn
 from torch.nn import functional as F
 from typing import Tuple
+from pathlib import Path
+from utils.import_params_json import load_config
 
 
 class CNN_model(nn.Module):
-    def __init__(self, grid_size: int, action_size: int,
-                 middle_channels: Tuple[int, int, int] = (64, 64, 64),
-                 kernel_sizes: Tuple[int, int, int] = (3, 3, 3),
-                 padding: Tuple[int, int, int] = (1, 1, 1), softmax: bool = True):
+    def __init__(self, params_path: Path, grid_size: int = None, action_size: int = None,
+                 middle_channels: Tuple[int, int, int] = None, kernel_sizes: Tuple[int, int, int] = None,
+                 padding: Tuple[int, int, int] = None, softmax: bool = None):
         super(CNN_model, self).__init__()
+        
+        reward_params = load_config(params_path, ["agent"]).get("agent", {})
+        grid_size = grid_size if grid_size is not None else reward_params.get("grid_size", 4)
+        action_size = action_size if action_size is not None else reward_params.get("action_size", 4)
+        
+        reward_params = load_config(params_path, ["CNN_model"]).get("CNN_model", {})
+        middle_channels = middle_channels if middle_channels is not None else reward_params.get("middle_channels", (16, 32, 64))
+        kernel_sizes = kernel_sizes if kernel_sizes is not None else reward_params.get("kernel_sizes", (2, 2, 2))
+        padding = padding if padding is not None else reward_params.get("padding", (1, 1, 1))
+        softmax = softmax if softmax is not None else reward_params.get("softmax", True)
+        
+        print("CNN_model params:")
+        print(f"grid_size: {grid_size}")
+        print(f"action_size: {action_size}")
+        print(f"middle_channels: {middle_channels}")
+        print(f"kernel_sizes: {kernel_sizes}")
+        print(f"padding: {padding}")
+        print(f"softmax: {softmax}")
+        
         
         final_grid_size = grid_size - sum(kernel_sizes) + len(kernel_sizes) + 2 * sum(padding)
         

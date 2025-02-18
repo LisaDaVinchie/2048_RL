@@ -10,7 +10,7 @@ from utils.visualize_game import print_grid, save_grid_to_file
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from CNN_model import CNN_model # Import the neural network model class
 from game_class import Game2048_env # Import the game class
-from rewards import maxN_emptycells_reward
+from rewards import maxN_emptycells_reward, original_reward
 
 start_time = time()
 
@@ -29,16 +29,7 @@ params_file_path = args.params
 config = load_config(params_file_path, ["agent", "CNN_model", "training"])
 
 # Initialise the model
-grid_size: int = None
-action_size: int = None
-middle_channels: list = None
-kernel_sizes: list = None
-padding: list = None
-softmax: bool = None
-locals().update(config["CNN_model"])  # Add variables to the local namespace
-print("Using softmax = ", softmax)
-model = CNN_model(grid_size, action_size, middle_channels, kernel_sizes, padding, softmax)
-print("Model initialised\n")
+model = CNN_model(params_file_path)
 
 learning_rate: float = None
 n_episodes: int = None
@@ -47,11 +38,12 @@ locals().update(config["training"])
 
 # Choose loss and optimizer
 loss_function = th.nn.SmoothL1Loss()
-optimizer = th.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = th.optim.SGD(model.parameters(), lr=learning_rate)
 
 # Initialise the agent
 state_size: int = None
 action_size: int = None
+grid_size: int = None
 gamma: float = None
 epsilon: float = None
 epsilon_decay: float = None
@@ -78,7 +70,7 @@ max_value_reached = []
 train_epsilon = []
 train_loss = []
 train_Q_values = []
-reward_function = maxN_emptycells_reward
+reward_function = original_reward
 
 print("Training the agent\n")
 for episode in range(n_episodes):
