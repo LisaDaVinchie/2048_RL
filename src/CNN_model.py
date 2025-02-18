@@ -12,15 +12,15 @@ class CNN_model(nn.Module):
                  padding: Tuple[int, int, int] = None, softmax: bool = None):
         super(CNN_model, self).__init__()
         
-        reward_params = load_config(params_path, ["agent"]).get("agent", {})
-        grid_size = grid_size if grid_size is not None else reward_params.get("grid_size", 4)
-        action_size = action_size if action_size is not None else reward_params.get("action_size", 4)
+        model_params = load_config(params_path, ["agent"]).get("agent", {})
+        grid_size = grid_size if grid_size is not None else model_params.get("grid_size", 4)
+        action_size = action_size if action_size is not None else model_params.get("action_size", 4)
         
-        reward_params = load_config(params_path, ["CNN_model"]).get("CNN_model", {})
-        middle_channels = middle_channels if middle_channels is not None else reward_params.get("middle_channels", (16, 32, 64))
-        kernel_sizes = kernel_sizes if kernel_sizes is not None else reward_params.get("kernel_sizes", (2, 2, 2))
-        padding = padding if padding is not None else reward_params.get("padding", (1, 1, 1))
-        softmax = softmax if softmax is not None else reward_params.get("softmax", True)
+        model_params = load_config(params_path, ["CNN_model"]).get("CNN_model", {})
+        middle_channels = middle_channels if middle_channels is not None else model_params.get("middle_channels", (16, 32, 64))
+        kernel_sizes = kernel_sizes if kernel_sizes is not None else model_params.get("kernel_sizes", (2, 2, 2))
+        padding = padding if padding is not None else model_params.get("padding", (1, 1, 1))
+        softmax = softmax if softmax is not None else model_params.get("softmax", True)
         
         print("CNN_model params:")
         print(f"grid_size: {grid_size}")
