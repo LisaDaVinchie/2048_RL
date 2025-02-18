@@ -1,7 +1,5 @@
 import numpy as np
 from pathlib import Path
-
-
 from utils.import_params_json import load_config
 
 def original_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: bool, params_path: Path, game_over_penalty: int = None):
