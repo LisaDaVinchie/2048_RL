@@ -26,7 +26,7 @@ with open(paths_file_path) as f:
 final_score_path = paths["final_result_path"]
 
 params_file_path = args.params
-config = load_config(params_file_path, ["agent", "CNN_model", "training"])
+config = load_config(params_file_path, ["training"])
 
 # Initialise the model
 model = CNN_model(params_file_path)
@@ -41,26 +41,10 @@ loss_function = th.nn.SmoothL1Loss()
 optimizer = th.optim.SGD(model.parameters(), lr=learning_rate)
 
 # Initialise the agent
-state_size: int = None
-action_size: int = None
-grid_size: int = None
-gamma: float = None
-epsilon: float = None
-epsilon_decay: float = None
-epsilon_min: float = None
-buffer_maxlen: int = None
-batch_size: int = None
-target_update_freq: int = None
-locals().update(config["agent"])  # Add variables to the local namespace
 
-agent = DQN_Agent(model, loss_function, optimizer,
-                  state_size, action_size, gamma,
-                  epsilon, epsilon_decay, epsilon_min,
-                  buffer_maxlen, batch_size, target_update_freq)
+agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
 
-locals().update(config["agent"])
-print("Agent initialised\n")
-
+grid_size = 4
 # Initialise the game environment
 game_env = Game2048_env(size=grid_size)
 print("Game environment initialised\n")

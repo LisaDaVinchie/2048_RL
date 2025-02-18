@@ -5,18 +5,42 @@ import torch as th
 import torch.nn as nn
 import copy
 import math
+from pathlib import Path
+from utils.import_params_json import load_config
 
 class DQN_Agent:
     """Handles
     - decision making
     - replay buffer
     - training"""
-    def __init__(self, model: nn.Module, loss_function,
-                 optimizer: th.optim.Optimizer, state_size: int,
-                 action_size: int, gamma: float=0.95,
-                 epsilon: float=1.0, epsilon_decay: float=0.995,
-                 epsilon_min: float=0.01, buffer_maxlen: int=2000,
-                 batch_size: int=32, target_update_freq: int=10):
+    def __init__(self, params_path: Path, model: nn.Module, loss_function,
+                 optimizer: th.optim.Optimizer, state_size: int = None,
+                 action_size: int = None, gamma: float = None,
+                 epsilon: float = None, epsilon_decay: float = None,
+                 epsilon_min: float = None, buffer_maxlen: int = None,
+                 batch_size: int = None, target_update_freq: int = None):
+        
+        agent_params = load_config(params_path, ["agent"]).get("agent", {})
+        state_size = state_size if state_size is not None else agent_params.get("state_size", 16)
+        action_size = action_size if action_size is not None else agent_params.get("action_size", 4)
+        gamma = gamma if gamma is not None else agent_params.get("gamma", 0.95)
+        epsilon = epsilon if epsilon is not None else agent_params.get("epsilon", 1.0)
+        epsilon_decay = epsilon_decay if epsilon_decay is not None else agent_params.get("epsilon_decay", 0.995)
+        epsilon_min = epsilon_min if epsilon_min is not None else agent_params.get("epsilon_min", 0.01)
+        buffer_maxlen = buffer_maxlen if buffer_maxlen is not None else agent_params.get("buffer_maxlen", 2000)
+        batch_size = batch_size if batch_size is not None else agent_params.get("batch_size", 32)
+        target_update_freq = target_update_freq if target_update_freq is not None else agent_params.get("target_update_freq", 10)
+        
+        print("Agent parameters:")
+        print(f"State size: {state_size}")
+        print(f"Action size: {action_size}")
+        print(f"Gamma: {gamma}")
+        print(f"Epsilon: {epsilon}")
+        print(f"Epsilon decay: {epsilon_decay}")
+        print(f"Epsilon min: {epsilon_min}")
+        print(f"Buffer maxlen: {buffer_maxlen}")
+        print(f"Batch size: {batch_size}")
+        print(f"Target update frequency: {target_update_freq}")
         
         self.state_size: int = state_size
         self.action_size: int = action_size
