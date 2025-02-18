@@ -4,6 +4,36 @@ from pathlib import Path
 
 from utils.import_params_json import load_config
 
+def original_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: bool, params_path: Path, game_over_penalty: int = None):
+    """
+    Compute the score gained in a move based on merges.
+    
+    The score is the sum of all newly created tiles during merging.
+    
+    Parameters:
+        old_grid (np.ndarray): The grid before the move.
+        new_grid (np.ndarray): The grid after the move.
+
+    Returns:
+        int: The score gained in this move.
+    """
+    # Load the reward parameters from the configuration file
+    reward_params = load_config(params_path, ["rewards"]).get("rewards", {})
+    game_over_penalty = game_over_penalty if game_over_penalty is not None else reward_params.get("game_over_penalty", 1000)
+    
+    score = 0
+    for i in range(4):
+        for j in range(4):
+            if new_grid[i, j] > old_grid[i, j]:  # Tile grew -> merge happened
+                score += new_grid[i, j]  # Add merged tile value
+                
+    if is_game_over:
+        score -= game_over_penalty
+    
+
+    return score
+    
+
 def maxN_emptycells_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: bool, params_path: Path, max_tile_reward: int = None, empty_cells_reward: int = None, game_over_penalty: int = None, no_changes_penalty: int = None) -> int:
     """
     Calculate the reward based on the differences between the old grid and the new grid.
@@ -48,7 +78,7 @@ def maxN_emptycells_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_o
     # Bonus reward for increasing the maximum tile value
     old_max = np.max(old_grid)
     new_max = np.max(new_grid)
-    if new_max > old_max:
+    if new_max >= old_max:
         reward += new_max * max_tile_reward  # Bonus reward for increasing the max tile
         
     # print("Max tile reward: ", new_max * max_tile_reward, flush=True)
@@ -56,7 +86,8 @@ def maxN_emptycells_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_o
     # Small reward for increasing the number of empty cells
     old_empty = np.sum(old_grid == 0)
     new_empty = np.sum(new_grid == 0)
-    reward += (new_empty - old_empty) * empty_cells_reward  # Small reward for more empty cells
+    if new_empty > old_empty:
+        reward += np.log2(new_empty - old_empty) * empty_cells_reward  # Small reward for more empty cells
     
     # print("Empty tiles reward: ", (new_empty - old_empty) * empty_cells_reward, flush=True)
     
