@@ -30,7 +30,7 @@ class TestDQNAgent(unittest.TestCase):
         """Create a temporary JSON file with reward parameters."""
         self.agent_params = {
             "agent": {
-                "state_size": 16,
+                "grid_size": 4,
                 "action_size": 4,
                 "batch_size": 32,
                 "gamma": 0.99,
@@ -75,6 +75,7 @@ class TestDQNAgent(unittest.TestCase):
         
         # Check if the parameters are loaded correctly
         self.assertEqual(self.agent.state_size, 16)
+        self.assertEqual(self.agent.grid_size, 4)
         self.assertEqual(self.agent.action_size, 4)
         self.assertEqual(self.agent.batch_size, 32)
         self.assertEqual(self.agent.gamma, 0.99)
@@ -141,6 +142,9 @@ class TestDQNAgent(unittest.TestCase):
         
         self.agent.load(save_path)
         self.assertTrue(th.equal(self.agent.model.fc.weight, self.agent.target_model.fc.weight))
+        
+        # Clean up
+        os.remove(save_path)
 
 if __name__ == "__main__":
     unittest.main()
