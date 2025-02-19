@@ -14,14 +14,14 @@ class DQN_Agent:
     - replay buffer
     - training"""
     def __init__(self, params_path: Path, model: nn.Module, loss_function,
-                 optimizer: th.optim.Optimizer, state_size: int = None,
+                 optimizer: th.optim.Optimizer, grid_size: int = None,
                  action_size: int = None, gamma: float = None,
                  epsilon: float = None, epsilon_decay: float = None,
                  epsilon_min: float = None, buffer_maxlen: int = None,
                  batch_size: int = None, target_update_freq: int = None):
         
         agent_params = load_config(params_path, ["agent"]).get("agent", {})
-        self.state_size = state_size if state_size is not None else agent_params.get("state_size", 16)
+        self.grid_size = grid_size if grid_size is not None else agent_params.get("grid_size", 4)
         self.action_size = action_size if action_size is not None else agent_params.get("action_size", 4)
         self.gamma = gamma if gamma is not None else agent_params.get("gamma", 0.95)
         self.epsilon = epsilon if epsilon is not None else agent_params.get("epsilon", 1.0)
@@ -30,6 +30,8 @@ class DQN_Agent:
         self.buffer_maxlen = buffer_maxlen if buffer_maxlen is not None else agent_params.get("buffer_maxlen", 2000)
         self.batch_size = batch_size if batch_size is not None else agent_params.get("batch_size", 32)
         self.target_update_freq = target_update_freq if target_update_freq is not None else agent_params.get("target_update_freq", 10)
+        
+        self.state_size = self.grid_size * self.grid_size
         
         # print("\nAgent parameters:")
         # print(f"State size: {self.state_size}")

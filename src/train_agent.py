@@ -44,7 +44,7 @@ optimizer = th.optim.SGD(model.parameters(), lr=learning_rate)
 
 agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
 
-grid_size = 4
+grid_size = agent.grid_size
 # Initialise the game environment
 game_env = Game2048_env(size=grid_size)
 print("Game environment initialised\n")

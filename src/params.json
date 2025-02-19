@@ -1,6 +1,5 @@
 {
     "agent":{
-        "state_size": 16,
         "action_size": 4,
         "grid_size": 4,
         "gamma": 0.95,
