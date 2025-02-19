@@ -8,9 +8,9 @@ from time import time
 from utils.import_params_json import load_config
 from utils.visualize_game import print_grid, save_grid_to_file
 from agent_class import DQN_Agent # Import the DQN_Agent class
-from CNN_model import CNN_model # Import the neural network model class
+from CNN_model import CNN_model, LinearModel # Import the neural network model class
 from game_class import Game2048_env # Import the game class
-from rewards import maxN_emptycells_reward, original_reward
+from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward
 
 start_time = time()
 
@@ -29,7 +29,7 @@ params_file_path = args.params
 config = load_config(params_file_path, ["training"])
 
 # Initialise the model
-model = CNN_model(params_file_path)
+model = LinearModel(params_file_path)
 
 learning_rate: float = None
 n_episodes: int = None
@@ -54,7 +54,7 @@ max_value_reached = []
 train_epsilon = []
 train_loss = []
 train_Q_values = []
-reward_function = original_reward
+reward_function = maxN_emptycells_merge_reward
 
 print("Training the agent\n")
 for episode in range(n_episodes):
@@ -67,6 +67,7 @@ for episode in range(n_episodes):
     total_reward = 0 # Initialize the total reward
     is_action_exploratory = [] # Initialize the list of exploratory actions
     
+    max_value = 0
     while not done:
         # Choose an action
         action, is_exploratory = agent.choose_action(state.unsqueeze(0).unsqueeze(0), training=True)
@@ -84,11 +85,14 @@ for episode in range(n_episodes):
         
         state = next_state # Update the state
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
+        
+        # Update the maximum value reached
+        max_value = max(max_value, np.max(state.numpy()))
     
     # Store the final score
     final_scores.append(total_reward)
-    max_value_reached.append(np.max(state.numpy()))
-        
+    max_value_reached.append(max_value)
+    
     # Train the model
     agent.train_step(episode)
     
