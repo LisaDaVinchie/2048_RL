@@ -44,7 +44,6 @@ class TestCNNModel(unittest.TestCase):
         self.temp_json.close()  # Close the file to ensure it's written and available
         self.params_path = Path(self.temp_json.name).resolve()  # Use absolute path
         
-        print(f"\nTemporary file created at: {self.params_path}")  # For debugging
         self.model = CNN_model(params_path=self.params_path)
 
         self.batch_size = 10
