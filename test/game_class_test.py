@@ -11,7 +11,7 @@ class TestGame2048Env(unittest.TestCase):
     def setUp(self):
         """Set up the test environment."""
         # Mocking the reward function and parameters path for testing
-        self.env = Game2048_env()
+        self.env = Game2048_env(size=4, n_channels=11)
     
     def test_reset(self):
         """Test if the reset method correctly initializes the grid."""
