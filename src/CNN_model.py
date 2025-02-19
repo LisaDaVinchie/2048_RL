@@ -3,7 +3,7 @@ from torch import nn
 from torch.nn import functional as F
 from typing import Tuple
 from pathlib import Path
-from src.utils.import_params_json import load_config
+from utils.import_params_json import load_config
 
 
 class CNN_model(nn.Module):

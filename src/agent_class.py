@@ -6,7 +6,7 @@ import torch.nn as nn
 import copy
 import math
 from pathlib import Path
-from src.utils.import_params_json import load_config
+from utils.import_params_json import load_config
 
 class DQN_Agent:
     """Handles
