@@ -71,7 +71,6 @@ class TestGame2048(unittest.TestCase):
             max_tile = max(max_tile, np.max(grid))
             moves += 1
         self.assertTrue(self.env.is_game_over(grid) or moves == 500)
-        print("Game ended after", moves, "moves. Max tile:", max_tile)
 
 if __name__ == '__main__':
     unittest.main()
