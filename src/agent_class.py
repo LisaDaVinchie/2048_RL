@@ -6,7 +6,7 @@ import torch.nn as nn
 import copy
 import math
 from pathlib import Path
-from utils.import_params_json import load_config
+from src.utils.import_params_json import load_config
 
 class DQN_Agent:
     """Handles
@@ -21,44 +21,37 @@ class DQN_Agent:
                  batch_size: int = None, target_update_freq: int = None):
         
         agent_params = load_config(params_path, ["agent"]).get("agent", {})
-        state_size = state_size if state_size is not None else agent_params.get("state_size", 16)
-        action_size = action_size if action_size is not None else agent_params.get("action_size", 4)
-        gamma = gamma if gamma is not None else agent_params.get("gamma", 0.95)
-        epsilon = epsilon if epsilon is not None else agent_params.get("epsilon", 1.0)
-        epsilon_decay = epsilon_decay if epsilon_decay is not None else agent_params.get("epsilon_decay", 0.995)
-        epsilon_min = epsilon_min if epsilon_min is not None else agent_params.get("epsilon_min", 0.01)
-        buffer_maxlen = buffer_maxlen if buffer_maxlen is not None else agent_params.get("buffer_maxlen", 2000)
-        batch_size = batch_size if batch_size is not None else agent_params.get("batch_size", 32)
-        target_update_freq = target_update_freq if target_update_freq is not None else agent_params.get("target_update_freq", 10)
+        self.state_size = state_size if state_size is not None else agent_params.get("state_size", 16)
+        self.action_size = action_size if action_size is not None else agent_params.get("action_size", 4)
+        self.gamma = gamma if gamma is not None else agent_params.get("gamma", 0.95)
+        self.epsilon = epsilon if epsilon is not None else agent_params.get("epsilon", 1.0)
+        self.epsilon_decay = epsilon_decay if epsilon_decay is not None else agent_params.get("epsilon_decay", 0.995)
+        self.epsilon_min = epsilon_min if epsilon_min is not None else agent_params.get("epsilon_min", 0.01)
+        self.buffer_maxlen = buffer_maxlen if buffer_maxlen is not None else agent_params.get("buffer_maxlen", 2000)
+        self.batch_size = batch_size if batch_size is not None else agent_params.get("batch_size", 32)
+        self.target_update_freq = target_update_freq if target_update_freq is not None else agent_params.get("target_update_freq", 10)
         
-        print("Agent parameters:")
-        print(f"State size: {state_size}")
-        print(f"Action size: {action_size}")
-        print(f"Gamma: {gamma}")
-        print(f"Epsilon: {epsilon}")
-        print(f"Epsilon decay: {epsilon_decay}")
-        print(f"Epsilon min: {epsilon_min}")
-        print(f"Buffer maxlen: {buffer_maxlen}")
-        print(f"Batch size: {batch_size}")
-        print(f"Target update frequency: {target_update_freq}")
+        # print("\nAgent parameters:")
+        # print(f"State size: {self.state_size}")
+        # print(f"Action size: {self.action_size}")
+        # print(f"Gamma: {self.gamma}")
+        # print(f"Epsilon: {self.epsilon}")
+        # print(f"Epsilon decay: {self.epsilon_decay}")
+        # print(f"Epsilon min: {self.epsilon_min}")
+        # print(f"Buffer maxlen: {self.buffer_maxlen}")
+        # print(f"Batch size: {self.batch_size}")
+        # print(f"Target update frequency: {self.target_update_freq}")
+        # print()
         
-        self.state_size: int = state_size
-        self.action_size: int = action_size
-        self.replay_buffer = deque(maxlen=buffer_maxlen)
-        
-        self.model = model #The nn model
-        self.target_model= self._clone_model(model)
+        self.replay_buffer = deque(maxlen=self.buffer_maxlen)
+        self.model = model
+        self.target_model= self._clone_model(self.model)
         self.loss_function = loss_function
         self.optimizer = optimizer
         
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self.epsilon_min = epsilon_min
-        self.epsilon_decay = epsilon_decay
-        self.batch_size = batch_size
-        self.target_update_freq = target_update_freq
         self.loss = None
         self.current_q_values = None
+        
 
     def _clone_model(self, model: nn.Module) -> nn.Module:
         """Properly clones a PyTorch model."""
@@ -100,7 +93,7 @@ class DQN_Agent:
             self.epsilon = self.epsilon_min + (self.epsilon - self.epsilon_min) * math.exp(-self.epsilon_decay * episode)
         
         if episode % self.target_update_freq == 0:
-            self.update_target_model()
+            self.update_target_model_weights()
 
     def compute_Q_values(self, states: th.tensor, actions: th.tensor, rewards: th.tensor, next_states: th.tensor, dones: th.tensor):
         """Compute the Q values for the current state and the target Q values"""
@@ -130,7 +123,7 @@ class DQN_Agent:
             is_exploration = False
         return action, is_exploration
             
-    def update_target_model(self):
+    def update_target_model_weights(self):
         """Update the target model"""
         self.target_model.load_state_dict(self.model.state_dict())
         
