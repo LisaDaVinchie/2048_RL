@@ -58,8 +58,8 @@ class CNN_model(nn.Module):
                                stride=self.strides[2],
                                padding=self.padding[2])
         self.bn3 = nn.BatchNorm2d(self.middle_channels[2])
-        self.fc1 = nn.Linear(self.middle_channels[2] * final_grid_size * final_grid_size, 128)
-        self.fc2 = nn.Linear(128, self.action_size)
+        self.fc1 = nn.Linear(self.middle_channels[2] * final_grid_size * final_grid_size, 512)
+        self.fc2 = nn.Linear(512, self.action_size)
         
         self.activation = nn.ReLU()
         
@@ -75,3 +75,77 @@ class CNN_model(nn.Module):
             return F.softmax(x, dim=1)
         else:
             return x
+        
+class LinearModel(nn.Module):
+    def __init__(self, params_path: Path, grid_size: int = None, action_size: int = None, middle_channels: Tuple[int, int, int] = None):
+        super(LinearModel, self).__init__()
+        
+        model_params = load_config(params_path, ["agent"]).get("agent", {})
+        self.grid_size = grid_size if grid_size is not None else model_params.get("grid_size", 4)
+        self.action_size = action_size if action_size is not None else model_params.get("action_size", 4)
+        
+        model_params = load_config(params_path, ["CNN_model"]).get("CNN_model", {})
+        self.middle_channels = middle_channels if middle_channels is not None else model_params.get("middle_channels", (16, 32, 64))
+        
+        self.fc1 = nn.Linear(self.grid_size * self.grid_size, self.middle_channels[0])
+        self.bn1 = nn.BatchNorm1d(self.middle_channels[0])
+        self.fc2 = nn.Linear(self.middle_channels[0], self.middle_channels[1])
+        self.bn2 = nn.BatchNorm1d(self.middle_channels[1])
+        self.fc3 = nn.Linear(self.middle_channels[1], self.middle_channels[2])
+        self.bn3 = nn.BatchNorm1d(self.middle_channels[2])
+        self.fc4 = nn.Linear(self.middle_channels[2], self.action_size)
+        
+        self.activation = nn.ReLU()
+        
+    def forward(self, x: th.Tensor) -> th.Tensor:
+        x = th.log2(x + 1)/11
+        
+        # Reshape to batch_size x (grid_size * grid_size)
+        x = x.view(x.size(0), -1)
+        # print("\nx size: ", x.size(), "\n")
+        x = self.fc1(x)
+        # x = self.bn1(x)
+        x = self.activation(x)
+        
+        x = self.fc2(x)
+        # x = self.bn2(x)
+        x = self.activation(x)
+        
+        x = self.fc3(x)
+        # x = self.bn3(x)
+        x = self.activation(x)
+        return self.fc4(x)
+    
+# class ConvBlock(nn.Module):
+#     def __init__(self, input_dim, output_dim):
+#         super(ConvBlock, self).__init__()
+#         d = output_dim // 4
+#         self.conv1 = nn.Conv2d(input_dim, d, 1, padding='same')
+#         self.conv2 = nn.Conv2d(input_dim, d, 2, padding='same')
+#         self.conv3 = nn.Conv2d(input_dim, d, 3, padding='same')
+#         self.conv4 = nn.Conv2d(input_dim, d, 4, padding='same')
+
+#     def forward(self, x):
+#         output1 = self.conv1(x)
+#         output2 = self.conv2(x)
+#         output3 = self.conv3(x)
+#         output4 = self.conv4(x)
+#         return th.cat((output1, output2, output3, output4), dim=1)
+
+# class DQN(nn.Module):
+
+#     def __init__(self):
+#         super(DQN, self).__init__()
+#         self.conv1 = ConvBlock(16, 2048)
+#         self.conv2 = ConvBlock(2048, 2048)
+#         self.conv3 = ConvBlock(2048, 2048)
+#         self.dense1 = nn.Linear(2048 * 16, 1024)
+#         self.dense2 = nn.Linear(1024, 4)
+    
+#     def forward(self, x):
+#         x = F.relu(self.conv1(x))
+#         x = F.relu(self.conv2(x))
+#         x = F.relu(self.conv3(x))
+#         x = nn.Flatten()(x)
+#         x = F.dropout(self.dense1(x))
+#         return self.dense2(x)
