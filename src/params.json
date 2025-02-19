@@ -2,6 +2,7 @@
     "agent":{
         "state_size": 16,
         "action_size": 4,
+        "grid_size": 4,
         "gamma": 0.95,
         "epsilon": 1.0,
         "epsilon_decay": 0.00001,
@@ -11,8 +12,6 @@
         "target_update_freq": 10
     },
     "CNN_model": {
-        "grid_size": 4,
-        "action_size": 4,
         "middle_channels": [64, 64, 64],
         "kernel_sizes": [3, 3, 3],
         "padding": [1, 1, 1],
@@ -30,7 +29,7 @@
         "print_every": 100
     },
     "rewards": {
-        "max_tile_reward": 500,
+        "max_tile_reward": 100,
         "empty_cells_reward": 5,
         "game_over_penalty": 50,
         "no_changes_penalty": 10
