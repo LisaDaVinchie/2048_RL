@@ -27,6 +27,7 @@ class TestCNNModel(unittest.TestCase):
                 "state_size": 16,
                 "action_size": 4,
                 "grid_size": 4,
+                "n_channels": 11,
                 "gamma": 0.95,
                 "epsilon": 1.0,
                 "epsilon_decay": 0.00001,
@@ -47,7 +48,7 @@ class TestCNNModel(unittest.TestCase):
         self.model = CNN_model(params_path=self.params_path)
 
         self.batch_size = 10
-        self.input_tensor = th.rand((self.batch_size, 1, 4, 4))
+        self.input_tensor = th.rand((self.batch_size, 11, 4, 4))
         
     
     def tearDown(self):
@@ -61,6 +62,7 @@ class TestCNNModel(unittest.TestCase):
         # Check if the model has the correct attributes
         self.assertEqual(self.model.grid_size, 4)
         self.assertEqual(self.model.action_size, 4)
+        self.assertEqual(self.model.n_channels, 11)
         self.assertEqual(self.model.middle_channels, [64, 64, 64])
         self.assertEqual(self.model.kernel_sizes, [3, 4, 3])
         self.assertEqual(self.model.padding, [1, 1, 1])
