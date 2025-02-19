@@ -22,14 +22,14 @@ class CNN_model(nn.Module):
         self.padding = padding if padding is not None else model_params.get("padding", (1, 1, 1))
         self.softmax = softmax if softmax is not None else model_params.get("softmax", True)
         
-        print("CNN_model params:")
-        print(f"grid_size: {self.grid_size}")
-        print(f"action_size: {self.action_size}")
-        print(f"middle_channels: {self.middle_channels}")
-        print(f"kernel_sizes: {self.kernel_sizes}")
-        print(f"padding: {self.padding}")
-        print(f"softmax: {self.softmax}")
-        print()
+        # print("CNN_model params:")
+        # print(f"grid_size: {self.grid_size}")
+        # print(f"action_size: {self.action_size}")
+        # print(f"middle_channels: {self.middle_channels}")
+        # print(f"kernel_sizes: {self.kernel_sizes}")
+        # print(f"padding: {self.padding}")
+        # print(f"softmax: {self.softmax}")
+        # print()
         
         
         final_grid_size = self.grid_size - sum(self.kernel_sizes) + len(self.kernel_sizes) + 2 * sum(self.padding)
