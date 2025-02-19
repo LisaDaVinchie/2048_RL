@@ -18,7 +18,7 @@ class DQN_Agent:
                  action_size: int = None, gamma: float = None,
                  epsilon: float = None, epsilon_decay: float = None,
                  epsilon_min: float = None, buffer_maxlen: int = None,
-                 batch_size: int = None, target_update_freq: int = None):
+                 batch_size: int = None, target_update_freq: int = None, learn_iterations: int = None):
         
         agent_params = load_config(params_path, ["agent"]).get("agent", {})
         self.grid_size = grid_size if grid_size is not None else agent_params.get("grid_size", 4)
@@ -30,6 +30,7 @@ class DQN_Agent:
         self.buffer_maxlen = buffer_maxlen if buffer_maxlen is not None else agent_params.get("buffer_maxlen", 2000)
         self.batch_size = batch_size if batch_size is not None else agent_params.get("batch_size", 32)
         self.target_update_freq = target_update_freq if target_update_freq is not None else agent_params.get("target_update_freq", 10)
+        self.learn_iterations = learn_iterations if learn_iterations is not None else agent_params.get("learn_iterations", 1)
         
         self.state_size = self.grid_size * self.grid_size
         
@@ -73,22 +74,24 @@ class DQN_Agent:
         if len(self.replay_buffer) < self.batch_size:
             return
         
-        minibatch = random.sample(self.replay_buffer, self.batch_size)
-        
-        # Extract experiences from the minibatch
-        states = th.stack([exp[0] for exp in minibatch])
-        actions = th.LongTensor([exp[1] for exp in minibatch])
-        rewards = th.FloatTensor([exp[2] for exp in minibatch])
-        next_states = th.stack([exp[3] for exp in minibatch])
-        dones = th.BoolTensor([exp[4] for exp in minibatch])
-        
-        self.current_q_values, target_q_values = self.compute_Q_values(states, actions, rewards, next_states, dones)
-        self.loss = self.loss_function(self.current_q_values, target_q_values)
-        
-        # Compute the loss
-        self.optimizer.zero_grad()
-        self.loss.backward()
-        self.optimizer.step()
+        for epoch in range(self.learn_iterations):
+            
+            minibatch = random.sample(self.replay_buffer, self.batch_size)
+            
+            # Extract experiences from the minibatch
+            states = th.stack([exp[0] for exp in minibatch])
+            actions = th.LongTensor([exp[1] for exp in minibatch])
+            rewards = th.FloatTensor([exp[2] for exp in minibatch])
+            next_states = th.stack([exp[3] for exp in minibatch])
+            dones = th.BoolTensor([exp[4] for exp in minibatch])
+            
+            self.current_q_values, target_q_values = self.compute_Q_values(states, actions, rewards, next_states, dones)
+            self.loss = self.loss_function(self.current_q_values, target_q_values)
+            
+            # Compute the loss
+            self.optimizer.zero_grad()
+            self.loss.backward()
+            self.optimizer.step()
         
         # Decay epsilon
         if self.epsilon > self.epsilon_min:
@@ -120,6 +123,7 @@ class DQN_Agent:
         else:
             # Exploitation: return the action with the highest Q value
             with th.no_grad():
+                # print("State shape during explotation: ", state.shape)
                 q_values = self.model(state)
             action = th.argmax(q_values).item()
             is_exploration = False
