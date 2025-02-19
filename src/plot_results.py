@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from utils.read_results import read_data
 from pathlib import Path
+import numpy as np
 import json
 import argparse
 from utils.read_results import find_latest_file
@@ -40,9 +41,10 @@ axs[0, 0].plot(final_scores)
 axs[0, 0].set_title("Final Scores")
 axs[0, 0].set_ylabel("Score")
 
-axs[0, 1].plot(max_values)
+axs[0, 1].plot(np.log2(max_values))
 axs[0, 1].set_title("Max Value reached")
-axs[0, 1].set_ylabel("Value")
+axs[0, 1].set_ylabel("Log2(Value)")
+axs[0, 1].set_yticks(range(int(min(np.log2(max_values))), int(max(np.log2(max_values))) + 1))
 
 axs[1, 0].plot(epsilons)
 axs[1, 0].set_title("Epsilon")
