@@ -2,21 +2,25 @@
     "agent":{
         "action_size": 4,
         "grid_size": 4,
-        "max_value": 2048,
+        "n_channels": 11,
         "gamma": 0.95,
-        "epsilon": 1.0,
-        "epsilon_decay": 0.00001,
+        "epsilon": 0.05,
+        "epsilon_decay": 0.9999,
         "epsilon_min": 0.01,
-        "buffer_maxlen": 100000,
-        "batch_size": 64,
+        "buffer_maxlen": 10000,
+        "batch_size": 1024,
         "target_update_freq": 10,
-        "learn_iterations": 5
+        "learn_iterations": 10,
+        "explore_for": 500
     },
     "CNN_model": {
-        "middle_channels": [64, 64, 64],
+        "middle_channels": [64, 64, 64, 128],
         "kernel_sizes": [3, 3, 3],
         "padding": [0, 1, 1],
         "softmax": false
+    },
+    "Linear_model": {
+        "middle_channels": [288, 1024, 1024, 1024]
     },
     "actions": {
         "up": 0,
@@ -27,7 +31,13 @@
     "training": {
         "n_episodes": 1000,
         "learning_rate": 0.00001,
-        "print_every": 100
+        "print_every": 10,
+        "model_kind": "linear",
+        "optimizer_kind": "adam",
+        "loss_kind": "mse",
+        "_possible_models": ["cnn", "linear"],
+        "_possible_losses": ["mse", "huber"],
+        "_possible_optimizers": ["adam", "sgd"]
     },
     "rewards": {
         "max_tile_reward": 100,
