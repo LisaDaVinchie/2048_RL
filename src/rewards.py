@@ -37,20 +37,16 @@ def log2_merge_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: 
     reward_params = load_config(params_path, ["rewards"]).get("rewards", {})
     game_over_penalty = game_over_penalty if game_over_penalty is not None else reward_params.get("game_over_penalty", 1000)
     no_changes_penalty = reward_params.get("no_changes_penalty", 10)
+
+    merged_tiles = new_grid > old_grid
+    merged_values = new_grid[merged_tiles]
     
-    score = 0
-    for i in range(old_grid.shape[0]):
-        for j in range(old_grid.shape[1]):
-            if new_grid[i, j] > old_grid[i, j]:  # Tile grew -> merge happened
-                score += np.log2(new_grid[i, j])  # Add merged tile value
-                
-    # Check if any cells were moved
+    if merged_values.numel() > 0:
+        score = np.sum(np.log2(merged_values))
+        
     if np.array_equal(old_grid, new_grid):
         score -= no_changes_penalty
-
-    if is_game_over:
-        score -= game_over_penalty
-
+    
     return score
     
     
