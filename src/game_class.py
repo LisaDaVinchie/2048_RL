@@ -2,9 +2,10 @@ import numpy as np
 import random
 
 class Game2048_env:
-    def __init__(self, size: int=4):
+    def __init__(self, size: int=4, n_channels: int = 11):
         "Initialize grid size and grid"
         self.size = size
+        self.max_number = 2 ** n_channels
         
     def reset(self):
         """Reset the grid and add a new tile"""
@@ -19,7 +20,7 @@ class Game2048_env:
         # If there are empty cells in the grid, add a new tile in a random empty cell
         if empty_cells:
             row, col = random.choice(empty_cells)
-            grid[row, col] = random.choice([2, 4])
+            grid[row, col] = 2 if random.random() < 0.9 else 4
         return grid
     
     def _merge_tiles(self, line: np.ndarray) -> np.ndarray:
@@ -81,6 +82,10 @@ class Game2048_env:
                     return False
                 
         return True
+    
+    def is_win(self, grid: np.ndarray) -> bool:
+        """Check if the player has won the game"""
+        return np.any(grid == self.max_number)
 
     def step(self, old_grid: np.ndarray, action: int) -> tuple[np.ndarray, bool]:
         """Play a step of the game"""
