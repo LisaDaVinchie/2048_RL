@@ -8,10 +8,10 @@ from time import time
 from utils.import_params_json import load_config
 from utils.visualize_game import print_grid, save_grid_to_file
 from agent_class import DQN_Agent # Import the DQN_Agent class
-from CNN_model import CNN_model, LinearModel # Import the neural network model class
+from src.models import CNN_model, LinearModel # Import the neural network model class
 from game_class import Game2048_env # Import the game class
 from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward
-
+reward_function = log2_merge_reward
 start_time = time()
 
 # Load the configuration file
@@ -28,17 +28,36 @@ final_score_path = paths["final_result_path"]
 params_file_path = args.params
 config = load_config(params_file_path, ["training"])
 
-# Initialise the model
-model = LinearModel(params_file_path)
-
 learning_rate: float = None
 n_episodes: int = None
 print_every: int = None
+model_kind: str = None
+loss_kind: str = None
+optimizer_kind: str = None
 locals().update(config["training"])
 
+# Initialise the model
+if model_kind == "linear":
+    model = LinearModel(params_file_path)
+elif model_kind == "CNN":
+    model = CNN_model(params_file_path)
+else:
+    raise ValueError("Invalid model kind")
+
 # Choose loss and optimizer
-loss_function = th.nn.SmoothL1Loss()
-optimizer = th.optim.SGD(model.parameters(), lr=learning_rate)
+if loss_kind == "mse":
+    loss_function = th.nn.MSELoss()
+elif loss_kind == "huber":
+    loss_function = th.nn.SmoothL1Loss()
+else:
+    raise ValueError("Invalid loss kind")
+
+if optimizer_kind == "adam":
+    optimizer = th.optim.Adam(model.parameters(), lr=learning_rate)
+elif optimizer_kind == "sgd":
+    optimizer = th.optim.SGD(model.parameters(), lr=learning_rate)
+else:
+    raise ValueError("Invalid optimizer kind")
 
 # Initialise the agent
 
@@ -54,7 +73,6 @@ max_value_reached = []
 train_epsilon = []
 train_loss = []
 train_Q_values = []
-reward_function = maxN_emptycells_merge_reward
 
 print("Training the agent\n")
 for episode in range(n_episodes):
@@ -79,6 +97,7 @@ for episode in range(n_episodes):
         
         next_state = th.tensor(next_state, dtype=th.float32) # Convert the next state to a tensor
         # Store the experience in the replay buffer
+        
         agent.store_to_buffer(state.unsqueeze(0), action, reward, next_state.unsqueeze(0), done)
         
         total_reward += reward # Update the total reward
