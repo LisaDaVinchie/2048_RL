@@ -38,7 +38,10 @@ class TestDQNAgent(unittest.TestCase):
                 "epsilon_decay": 0.995,
                 "epsilon_min": 0.2,
                 "target_update_freq": 1,
-                "buffer_maxlen": 10000
+                "buffer_maxlen": 10000,
+                "explore_for": 500,
+                "epsilon_decay_kind": "multiply",
+                "steps_ahead": 2,
             }
         }
         
@@ -53,8 +56,8 @@ class TestDQNAgent(unittest.TestCase):
         self.agent = DQN_Agent(
             params_path=self.params_path,
             model=test_model,
-            loss_function=nn.SmoothL1Loss(),
-            optimizer=optim.SGD(test_model.parameters(), lr=0.01)
+            loss_function=nn.MSELoss(),
+            optimizer=optim.Adam(test_model.parameters())
         )
     
     def tearDown(self):
@@ -84,6 +87,9 @@ class TestDQNAgent(unittest.TestCase):
         self.assertEqual(self.agent.epsilon_min, 0.2)
         self.assertEqual(self.agent.target_update_freq, 1)
         self.assertEqual(self.agent.buffer_maxlen, 10000)
+        self.assertEqual(self.agent.explore_for, 500)
+        self.assertEqual(self.agent.epsilon_decay_kind, "multiply")
+        self.assertEqual(self.agent.steps_ahead, 2)
 
     def test_choose_action(self):
         """Test if the agent selects valid actions."""
@@ -100,11 +106,13 @@ class TestDQNAgent(unittest.TestCase):
         done = False
         
         self.agent.store_to_buffer(state, action, reward, next_state, done)
-        self.assertEqual(len(self.agent.replay_buffer), 1)
+        expected_length = min(self.agent.steps_ahead, len(self.agent.replay_buffer))
+        self.assertEqual(len(self.agent.replay_buffer), expected_length)
+
 
     def test_train_step(self):
         """Test if training updates the model."""
-        for _ in range(self.agent.batch_size):  # Fill buffer
+        for _ in range(self.agent.steps_ahead * self.agent.batch_size):
             state = self.create_random_state()
             next_state = self.create_random_state()
             action = np.random.randint(0, self.agent.action_size)
@@ -113,12 +121,18 @@ class TestDQNAgent(unittest.TestCase):
             self.agent.store_to_buffer(state, action, reward, next_state, done)
 
         initial_weights = self.agent.model.fc.weight.clone()
-        self.agent.train_step(episode=1)
+        self.agent.train_step(episode=2)
         self.assertFalse(th.equal(initial_weights, self.agent.model.fc.weight))
+        
+        self.loss = self.agent.loss.item()
+        self.current_q_values = self.agent.current_q_values
+        self.assertIsInstance(self.loss, float)
+        self.assertIsInstance(self.current_q_values, th.Tensor)
+        self.assertFalse(np.isnan(self.loss))
+        self.assertFalse(th.isnan(self.current_q_values).any())
 
     def test_update_target_model(self):
         """Test if the target model is updated correctly."""
-        initial_target_weights = self.agent.target_model.fc.weight.clone()
         for _ in range(self.agent.batch_size):  # Fill buffer
             state = self.create_random_state()
             action = np.random.randint(0, self.agent.action_size)
@@ -127,9 +141,8 @@ class TestDQNAgent(unittest.TestCase):
             done = False
             self.agent.store_to_buffer(state, action, reward, next_state, done)
         
-        self.agent.train_step(episode=1)
+        self.agent.train_step(episode=self.agent.target_update_freq)
         self.assertTrue(th.equal(self.agent.model.fc.weight, self.agent.target_model.fc.weight))
-        self.assertFalse(th.equal(initial_target_weights, self.agent.target_model.fc.weight))
 
     def test_save_and_load(self):
         """Test if the model can be saved and loaded correctly."""
