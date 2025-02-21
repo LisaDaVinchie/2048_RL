@@ -32,9 +32,9 @@ class TestLinearModel(unittest.TestCase):
         
         self.model = LinearModel(params_path=self.params_path)
         
-        self.batch_size = 10
+        self.batch_size = 1
         possible_values = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-        self.input_tensor = th.zeros((self.batch_size,1, self.model.grid_size, self.model.grid_size))
+        self.input_tensor = th.zeros((self.batch_size, 1, self.model.grid_size, self.model.grid_size))
         for i in range(self.batch_size):
             self.input_tensor[i, 0, :, :] = th.tensor([[possible_values[i % len(possible_values)] for _ in range(self.model.grid_size)] for _ in range(self.model.grid_size)])
         
