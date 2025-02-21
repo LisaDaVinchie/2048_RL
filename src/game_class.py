@@ -11,6 +11,7 @@ class Game2048_env:
         """Reset the grid and add a new tile"""
         grid = np.zeros((self.size, self.size), dtype=int)
         self._add_new_tile(grid)
+        self.step(grid, 0)
         return grid
     
     def _add_new_tile(self, grid: np.ndarray) -> np.ndarray:
