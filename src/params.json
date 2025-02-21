@@ -3,34 +3,24 @@
         "action_size": 4,
         "grid_size": 4,
         "n_channels": 11,
-        "gamma": 0.95,
-        "epsilon": 0.05,
-        "epsilon_decay": 0.9999,
+        "gamma": 0.995,
+        "epsilon": 1,
+        "epsilon_decay": 0.995,
         "epsilon_min": 0.01,
-        "buffer_maxlen": 10000,
+        "buffer_maxlen": 100000,
         "batch_size": 1024,
-        "target_update_freq": 10,
+        "target_update_freq": 50,
         "learn_iterations": 10,
-        "explore_for": 500
-    },
-    "CNN_model": {
-        "middle_channels": [64, 64, 64, 128],
-        "kernel_sizes": [3, 3, 3],
-        "padding": [0, 1, 1],
-        "softmax": false
-    },
-    "Linear_model": {
-        "middle_channels": [288, 1024, 1024, 1024]
-    },
-    "actions": {
-        "up": 0,
-        "down": 1,
-        "left": 2,
-        "right": 3
+        "explore_for": 10,
+        "steps_ahead": 2,
+        "epsilon_decay_kind": "multiply",
+        "representation_kind": "log2",
+        "_possible_decay_kinds": ["multiply", "exponential"],
+        "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "training": {
-        "n_episodes": 1000,
-        "learning_rate": 0.00001,
+        "n_episodes": 10,
+        "learning_rate": 0.0001,
         "print_every": 10,
         "model_kind": "linear",
         "optimizer_kind": "adam",
@@ -39,11 +29,25 @@
         "_possible_losses": ["mse", "huber"],
         "_possible_optimizers": ["adam", "sgd"]
     },
+    "CNN_model": {
+        "middle_channels": [64, 64, 64, 128],
+        "kernel_sizes": [3, 3, 3],
+        "padding": [1, 1, 1],
+        "softmax": false
+    },
+    "Linear_model": {
+        "middle_channels": [1024, 1024, 1024]
+    },
+    "actions": {
+        "up": 0,
+        "down": 1,
+        "left": 2,
+        "right": 3
+    },
     "rewards": {
         "max_tile_reward": 100,
         "empty_cells_reward": 5,
-        "game_over_penalty": 10,
-        "no_changes_penalty": 10
+        "game_over_penalty": 1000,
+        "no_changes_penalty": 5
     }
-
 }
