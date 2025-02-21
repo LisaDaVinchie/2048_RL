@@ -6,12 +6,11 @@ import json
 from time import time
 
 from utils.import_params_json import load_config
-from utils.visualize_game import print_grid, save_grid_to_file
 from agent_class import DQN_Agent # Import the DQN_Agent class
-from src.models import CNN_model, LinearModel # Import the neural network model class
+from models import CNN_model, LinearModel # Import the neural network model class
 from game_class import Game2048_env # Import the game class
-from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward
-reward_function = log2_merge_reward
+from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward, sum_maxval_reward
+reward_function = sum_maxval_reward
 start_time = time()
 
 # Load the configuration file
@@ -39,7 +38,7 @@ locals().update(config["training"])
 # Initialise the model
 if model_kind == "linear":
     model = LinearModel(params_file_path)
-elif model_kind == "CNN":
+elif model_kind == "cnn":
     model = CNN_model(params_file_path)
 else:
     raise ValueError("Invalid model kind")
@@ -85,6 +84,9 @@ for episode in range(n_episodes):
     total_reward = 0 # Initialize the total reward
     is_action_exploratory = [] # Initialize the list of exploratory actions
     
+    agent.loss = None
+    agent.current_q_values = None
+    
     max_value = 0
     while not done:
         # Choose an action
@@ -121,7 +123,9 @@ for episode in range(n_episodes):
     if (episode + 1) % print_every == 0:
         print(f"Total reward: {total_reward}\n")
     
+elapsed_time = time() - start_time
 
+# Save the parameters to a file
 with open(params_file_path, 'r') as f:
     params = json.load(f)
 
@@ -131,6 +135,9 @@ i = 0
     
 # Save the final scores to a file
 with open(final_score_path, 'w') as f:
+    f.write('Time taken [s]: ')
+    f.write(str(elapsed_time))
+    f.write('\n\n')
     f.write("Final score:\n")
     for i, score in enumerate(final_scores):
         f.write(f"{score}")
@@ -155,20 +162,18 @@ with open(final_score_path, 'w') as f:
         if i < len(train_loss) - 1:
             f.write("\t")
     f.write("\n\n")
-    f.write("Q values:\n")
-    for i, q_values in enumerate(train_Q_values):
-        f.write(f"{q_values}")
-        f.write("\n")
-        if i < len(train_Q_values) - 1:
-            f.write("\t")
-    f.write("\n\n")
+    # f.write("Q values:\n")
+    # for i, q_values in enumerate(train_Q_values):
+    #     f.write(f"{q_values}")
+    #     f.write("\n")
+    #     if i < len(train_Q_values) - 1:
+    #         f.write("\t")
+    # f.write("\n\n")
     
     f.write("Parameters:")
     f.write(json_str)
     
 print(f"Final scores saved to {final_score_path}\n")
 
-end_time = time()
-
-print(f"Training completed in {((end_time - start_time) / 60):.4f} minutes")
+print(f"Training completed in {((elapsed_time) / 60):.4f} minutes\n\n")
         
