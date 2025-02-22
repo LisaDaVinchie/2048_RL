@@ -43,13 +43,10 @@ def log2_merge_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: 
     
     score = 0
     if len(merged_values) > 0:
-        score += np.sum(np.log2(merged_values) * 10)
-        
-    if np.array_equal(old_grid, new_grid):
-        score -= no_changes_penalty
+        score += np.sum(merged_values)
     
     if is_game_over:
-        score -= game_over_penalty
+        score += np.sum(new_grid)
     
     return score
     
