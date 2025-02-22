@@ -1,6 +1,8 @@
 # Exclude the virtual environment
 venv*
 
+src/params.json
+
 # Exclude pycache
 **/__pycache__
 
