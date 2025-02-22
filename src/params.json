@@ -19,15 +19,15 @@
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "training": {
-        "n_episodes": 10000,
+        "n_episodes": 100,
         "learning_rate": 0.0001,
         "print_every": 10,
         "model_kind": "linear",
-        "optimizer_kind": "adam",
+        "optimizer_kind": "rmsprop",
         "loss_kind": "mse",
         "_possible_models": ["cnn", "linear"],
         "_possible_losses": ["mse", "huber"],
-        "_possible_optimizers": ["adam", "sgd"]
+        "_possible_optimizers": ["adam", "sgd", "rmsprop"]
     },
     "CNN_model": {
         "middle_channels": [64, 64, 64, 128],
