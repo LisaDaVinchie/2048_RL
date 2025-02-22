@@ -3,6 +3,10 @@ venv*
 
 src/params.json
 
+src/*.ipynb
+
+**/*.swp
+
 # Exclude pycache
 **/__pycache__
 
