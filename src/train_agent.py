@@ -10,7 +10,7 @@ from agent_class import DQN_Agent # Import the DQN_Agent class
 from models import CNN_model, LinearModel # Import the neural network model class
 from game_class import Game2048_env # Import the game class
 from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward, sum_maxval_reward
-reward_function = sum_maxval_reward
+reward_function = log2_merge_reward
 start_time = time()
 
 # Load the configuration file
@@ -55,6 +55,8 @@ if optimizer_kind == "adam":
     optimizer = th.optim.Adam(model.parameters(), lr=learning_rate)
 elif optimizer_kind == "sgd":
     optimizer = th.optim.SGD(model.parameters(), lr=learning_rate)
+elif optimizer_kind == "rmsprop":
+    optimizer = th.optim.RMSprop(model.parameters(), lr=learning_rate)
 else:
     raise ValueError("Invalid optimizer kind")
 
@@ -66,6 +68,20 @@ grid_size = agent.grid_size
 # Initialise the game environment
 game_env = Game2048_env(size=grid_size)
 print("Game environment initialised\n")
+
+print("Heat up the replay buffer\n")
+# Heat up the replay buffer
+while len(agent.replay_buffer) < agent.batch_size:
+    state = game_env.reset()
+    state = th.tensor(state, dtype=th.float32)
+    done = False
+    while not done:
+        action = np.random.randint(0, 4)
+        next_state, done = game_env.step(state.numpy(), action)
+        reward = reward_function(state.numpy(), next_state, done, params_file_path)
+        next_state = th.tensor(next_state, dtype=th.float32)
+        agent.store_to_buffer(state.unsqueeze(0), action, reward, next_state.unsqueeze(0), done)
+        state = next_state
 
 final_scores = []
 max_value_reached = []
