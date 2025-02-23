@@ -4,7 +4,7 @@
         "grid_size": 4,
         "n_channels": 11,
         "gamma": 0.995,
-        "epsilon": 1,
+        "epsilon": 0.9999,
         "epsilon_decay": 0.995,
         "epsilon_min": 0.01,
         "buffer_maxlen": 100000,
