@@ -1,0 +1,100 @@
+Time taken [s]: 134.48600006103516
+
+Final score:
+5668	9034	3398	4684	3786	13520	6528	6056	8740	4892
+
+Max value reached:
+128.0	128.0	64.0	64.0	64.0	256.0	128.0	128.0	128.0	64.0
+
+Epsilon:
+0.9949005	0.9899259975	0.9849763675125	0.9800514856749375	0.9751512282465628	0.9702754721053299	0.9654240947448033	0.9605969742710793	0.9557939893997238	0.9510150194527252
+
+Loss:
+6209.14599609375	5107.52392578125	4746.134765625	4487.31591796875	4200.14599609375	5699.06494140625	5052.42626953125	5131.0732421875	5889.73828125	5752.869140625
+
+Parameters:
+    "agent": {
+        "action_size": 4,
+        "grid_size": 4,
+        "n_channels": 11,
+        "gamma": 0.995,
+        "epsilon": 0.9999,
+        "epsilon_decay": 0.995,
+        "epsilon_min": 0.01,
+        "buffer_maxlen": 100000,
+        "batch_size": 1024,
+        "target_update_freq": 50,
+        "learn_iterations": 10,
+        "explore_for": 10,
+        "steps_ahead": 2,
+        "epsilon_decay_kind": "multiply",
+        "representation_kind": "one_hot",
+        "_possible_decay_kinds": [
+            "multiply",
+            "exponential"
+        ],
+        "_possible_representation_kinds": [
+            "raw",
+            "log2",
+            "one_hot"
+        ]
+    },
+    "training": {
+        "n_episodes": 10,
+        "learning_rate": 0.0001,
+        "print_every": 10,
+        "model_kind": "linear",
+        "optimizer_kind": "rmsprop",
+        "loss_kind": "mse",
+        "_possible_models": [
+            "cnn",
+            "linear"
+        ],
+        "_possible_losses": [
+            "mse",
+            "huber"
+        ],
+        "_possible_optimizers": [
+            "adam",
+            "sgd",
+            "rmsprop"
+        ]
+    },
+    "CNN_model": {
+        "middle_channels": [
+            64,
+            64,
+            64,
+            128
+        ],
+        "kernel_sizes": [
+            3,
+            3,
+            3
+        ],
+        "padding": [
+            1,
+            1,
+            1
+        ],
+        "softmax": false
+    },
+    "Linear_model": {
+        "middle_channels": [
+            1024,
+            1024,
+            1024
+        ]
+    },
+    "actions": {
+        "up": 0,
+        "down": 1,
+        "left": 2,
+        "right": 3
+    },
+    "rewards": {
+        "max_tile_reward": 100,
+        "empty_cells_reward": 5,
+        "game_over_penalty": 1000,
+        "no_changes_penalty": 5
+    }
