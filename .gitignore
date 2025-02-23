@@ -7,6 +7,10 @@ src/*.ipynb
 
 **/*.swp
 
+RL_venv/
+logs/
+sbatch.sh
+
 # Exclude pycache
 **/__pycache__
 
