@@ -95,7 +95,12 @@ class LinearModel(nn.Module):
         model_params = load_config(params_path, ["Linear_model"]).get("Linear_model", {})
         self.middle_channels = middle_channels if middle_channels is not None else model_params.get("middle_channels", (16, 32, 64))
         
-        self.fc1 = nn.Linear(self.grid_size * self.grid_size, self.middle_channels[0])
+        input_size = self.grid_size * self.grid_size
+        
+        if self.representation_kind == "one_hot":
+            input_size *= self.n_channels
+        
+        self.fc1 = nn.Linear(input_size, self.middle_channels[0])
         self.bn1 = nn.BatchNorm1d(self.middle_channels[0])
         self.fc2 = nn.Linear(self.middle_channels[0], self.middle_channels[1])
         self.bn2 = nn.BatchNorm1d(self.middle_channels[1])
