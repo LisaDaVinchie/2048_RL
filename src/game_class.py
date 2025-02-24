@@ -2,10 +2,10 @@ import numpy as np
 import random
 
 class Game2048_env:
-    def __init__(self, size: int=4, n_channels: int = 11):
+    def __init__(self, size: int=4, n_channels: int = 12):
         "Initialize grid size and grid"
         self.size = size
-        self.max_number = 2 ** n_channels
+        self.max_number = 2 ** (n_channels - 1)
         
     def reset(self):
         """Reset the grid and add a new tile"""
