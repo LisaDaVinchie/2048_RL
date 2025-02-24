@@ -128,3 +128,49 @@ class LinearModel(nn.Module):
         # x = self.bn3(x)
         x = self.fc4(x)
         return x
+    
+class ConvBlock(nn.Module):
+    def __init__(self, input_dim, output_dim):
+        super(ConvBlock, self).__init__()
+        d = output_dim // 4
+        self.conv1 = nn.Conv2d(input_dim, d, 1, padding='same')
+        self.conv2 = nn.Conv2d(input_dim, d, 2, padding='same')
+        self.conv3 = nn.Conv2d(input_dim, d, 3, padding='same')
+        self.conv4 = nn.Conv2d(input_dim, d, 4, padding='same')
+
+    def forward(self, x):
+        output1 = self.conv1(x)
+        output2 = self.conv2(x)
+        output3 = self.conv3(x)
+        output4 = self.conv4(x)
+        return th.cat((output1, output2, output3, output4), dim=1)
+
+class Large_CNN(nn.Module):
+
+    def __init__(self, params_path: Path, n_channels: int = None, action_size: int = None, grid_size: int = None, middle_channels: Tuple[int, int, int, int] = None):
+        super(Large_CNN, self).__init__()
+        
+        config = load_config(params_path, ["agent"]).get("agent", {})
+        self.n_channels = n_channels if n_channels is not None else config.get("n_channels", 3)
+        self.grid_size = grid_size if grid_size is not None else config.get("grid_size", 2)
+        self.action_size = action_size if action_size is not None else config.get("action_size", 2)
+        
+        config = load_config(params_path, ["Large_CNN"]).get("Large_CNN", {})
+        self.middle_channels = middle_channels if middle_channels is not None else config.get("middle_channels", (12, 12, 12, 12))
+        # self.n_channels = 11
+        # self.action_size = 4
+        # self.grid_size = 4
+        # self.middle_channels = (2048, 2048, 2048, 1024)
+        self.conv1 = ConvBlock(self.n_channels, self.middle_channels[0])
+        self.conv2 = ConvBlock(self.middle_channels[0], self.middle_channels[1])
+        self.conv3 = ConvBlock(self.middle_channels[1], self.middle_channels[2])
+        self.dense1 = nn.Linear(self.middle_channels[2] * self.grid_size * self.grid_size, self.middle_channels[3])
+        self.dense2 = nn.Linear(self.middle_channels[3], self.action_size)
+    
+    def forward(self, x: th.tensor):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = nn.Flatten()(x)
+        x = F.dropout(self.dense1(x))
+        return self.dense2(x)
