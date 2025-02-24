@@ -19,9 +19,9 @@
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "training": {
-        "n_episodes": 10,
+        "n_episodes": 1000,
         "learning_rate": 0.00005,
-        "print_every": 1,
+        "print_every": 10,
         "model_kind": "large_cnn",
         "optimizer_kind": "adam",
         "loss_kind": "mse",
@@ -39,7 +39,7 @@
         "middle_channels": [1024, 1024, 1024]
     },
     "Large_CNN": {
-        "middle_channels": [2048, 2048, 2048, 1024],
+        "middle_channels": [256, 256, 256, 128],
         "kernel_sizes": [1, 3, 5, 7]
     },
     "actions": {
