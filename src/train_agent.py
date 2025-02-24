@@ -7,10 +7,10 @@ from time import time
 
 from utils.import_params_json import load_config
 from agent_class import DQN_Agent # Import the DQN_Agent class
-from models import CNN_model, LinearModel # Import the neural network model class
+from models import CNN_model, LinearModel, Large_CNN # Import the neural network model class
 from game_class import Game2048_env # Import the game class
 from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward, sum_maxval_reward
-reward_function = log2_merge_reward
+reward_function = original_reward
 start_time = time()
 
 # Load the configuration file
@@ -40,6 +40,8 @@ if model_kind == "linear":
     model = LinearModel(params_file_path)
 elif model_kind == "cnn":
     model = CNN_model(params_file_path)
+elif model_kind == "large_cnn":
+    model = Large_CNN(params_file_path)
 else:
     raise ValueError("Invalid model kind")
 
