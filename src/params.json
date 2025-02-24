@@ -10,7 +10,7 @@
         "buffer_maxlen": 50000,
         "batch_size": 64,
         "target_update_freq": 20,
-        "learn_iterations": 10,
+        "learn_iterations": 50,
         "explore_for": 10,
         "steps_ahead": 2,
         "epsilon_decay_kind": "multiply",
