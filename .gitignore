@@ -9,7 +9,7 @@ src/*.ipynb
 
 RL_venv/
 logs/
-sbatch.sh
+*.sh
 
 # Exclude pycache
 **/__pycache__
