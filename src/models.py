@@ -12,11 +12,7 @@ def switch_representation(representation_kind: str, n_channels: int, x: th.Tenso
     elif representation_kind == "log2":
         return th.log2(x + 1) / n_channels
     elif representation_kind == "one_hot":
-        x = x.squeeze(1)
-        one_hot_x = th.zeros((x.size(0), n_channels, x.size(1), x.size(2)))
-        for i in range(x.size(0)):
-            one_hot_x[i] = to_one_hot(x[i], n_channels)
-        return one_hot_x
+        return to_one_hot(x, n_channels)
     else:
         raise ValueError("Invalid representation kind")
 
@@ -38,6 +34,12 @@ class CNN_model(nn.Module):
         self.softmax = softmax if softmax is not None else model_params.get("softmax", True)
         self.representation_kind = representation_kind if representation_kind is not None else model_params.get("representation_kind", "log2")
         
+        self.in_channels = 1
+        
+        if self.representation_kind == "one_hot":
+            self.in_channels *= self.n_channels
+            
+        
         final_grid_size = self.grid_size - sum(self.kernel_sizes) + len(self.kernel_sizes) + 2 * sum(self.padding)
         
         if final_grid_size < 1:
@@ -45,7 +47,7 @@ class CNN_model(nn.Module):
         
         self.strides = [1 for _ in range(len(self.kernel_sizes))]
         
-        self.conv1 = nn.Conv2d(in_channels=self.n_channels,
+        self.conv1 = nn.Conv2d(in_channels=self.in_channels,
                                out_channels=self.middle_channels[0],
                                kernel_size=self.kernel_sizes[0],
                                stride=self.strides[0],
@@ -69,7 +71,7 @@ class CNN_model(nn.Module):
         self.activation = nn.ReLU()
         
     def forward(self, x: th.Tensor) -> th.Tensor:
-        x = switch_representation("one_hot", self.n_channels, x)
+        x = switch_representation(self.representation_kind, self.in_channels, x)
         
         x = self.activation(self.bn1(self.conv1(x)))
         x = self.activation(self.bn2(self.conv2(x)))
@@ -130,13 +132,13 @@ class LinearModel(nn.Module):
         return x
     
 class ConvBlock(nn.Module):
-    def __init__(self, input_dim, output_dim):
+    def __init__(self, input_dim: int, output_dim: int, kernel_sizes: Tuple[int, int, int, int] = None):
         super(ConvBlock, self).__init__()
         d = output_dim // 4
-        self.conv1 = nn.Conv2d(input_dim, d, 1, padding='same')
-        self.conv2 = nn.Conv2d(input_dim, d, 2, padding='same')
-        self.conv3 = nn.Conv2d(input_dim, d, 3, padding='same')
-        self.conv4 = nn.Conv2d(input_dim, d, 4, padding='same')
+        self.conv1 = nn.Conv2d(input_dim, d, kernel_sizes[0], padding='same')
+        self.conv2 = nn.Conv2d(input_dim, d, kernel_sizes[1], padding='same')
+        self.conv3 = nn.Conv2d(input_dim, d, kernel_sizes[2], padding='same')
+        self.conv4 = nn.Conv2d(input_dim, d, kernel_sizes[3], padding='same')
 
     def forward(self, x):
         output1 = self.conv1(x)
@@ -147,7 +149,7 @@ class ConvBlock(nn.Module):
 
 class Large_CNN(nn.Module):
 
-    def __init__(self, params_path: Path, n_channels: int = None, action_size: int = None, grid_size: int = None, middle_channels: Tuple[int, int, int, int] = None):
+    def __init__(self, params_path: Path, n_channels: int = None, action_size: int = None, grid_size: int = None, middle_channels: Tuple[int, int, int, int] = None, kernel_sizes: Tuple[int, int, int, int] = None):
         super(Large_CNN, self).__init__()
         
         config = load_config(params_path, ["agent"]).get("agent", {})
@@ -157,18 +159,17 @@ class Large_CNN(nn.Module):
         
         config = load_config(params_path, ["Large_CNN"]).get("Large_CNN", {})
         self.middle_channels = middle_channels if middle_channels is not None else config.get("middle_channels", (12, 12, 12, 12))
-        # self.n_channels = 11
-        # self.action_size = 4
-        # self.grid_size = 4
-        # self.middle_channels = (2048, 2048, 2048, 1024)
-        self.conv1 = ConvBlock(self.n_channels, self.middle_channels[0])
-        self.conv2 = ConvBlock(self.middle_channels[0], self.middle_channels[1])
-        self.conv3 = ConvBlock(self.middle_channels[1], self.middle_channels[2])
+        self.kernel_sizes = kernel_sizes if kernel_sizes is not None else config.get("kernel_sizes", (2, 2, 2, 2))
+        
+        self.conv1 = ConvBlock(self.n_channels, self.middle_channels[0], self.kernel_sizes)
+        self.conv2 = ConvBlock(self.middle_channels[0], self.middle_channels[1], self.kernel_sizes)
+        self.conv3 = ConvBlock(self.middle_channels[1], self.middle_channels[2], self.kernel_sizes)
         self.dense1 = nn.Linear(self.middle_channels[2] * self.grid_size * self.grid_size, self.middle_channels[3])
         self.dense2 = nn.Linear(self.middle_channels[3], self.action_size)
     
     def forward(self, x: th.tensor):
-        x = F.relu(self.conv1(x))
+        new_x = switch_representation("one_hot", self.n_channels, x)
+        x = F.relu(self.conv1(new_x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
         x = nn.Flatten()(x)
