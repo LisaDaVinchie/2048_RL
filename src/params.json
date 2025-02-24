@@ -2,7 +2,7 @@
     "agent":{
         "action_size": 4,
         "grid_size": 4,
-        "n_channels": 11,
+        "n_channels": 12,
         "gamma": 0.99,
         "epsilon": 0.9,
         "epsilon_decay": 0.9999,
@@ -14,14 +14,14 @@
         "explore_for": 10,
         "steps_ahead": 2,
         "epsilon_decay_kind": "multiply",
-        "representation_kind": "log2",
+        "representation_kind": "one_hot",
         "_possible_decay_kinds": ["multiply", "exponential"],
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "training": {
-        "n_episodes": 1000,
+        "n_episodes": 10,
         "learning_rate": 0.00005,
-        "print_every": 10,
+        "print_every": 1,
         "model_kind": "large_cnn",
         "optimizer_kind": "adam",
         "loss_kind": "mse",
@@ -39,7 +39,8 @@
         "middle_channels": [1024, 1024, 1024]
     },
     "Large_CNN": {
-                "middle_channels": [2048, 2048, 2048, 1024]
+        "middle_channels": [2048, 2048, 2048, 1024],
+        "kernel_sizes": [1, 3, 5, 7]
     },
     "actions": {
         "up": 0,
