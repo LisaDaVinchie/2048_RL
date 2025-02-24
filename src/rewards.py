@@ -15,18 +15,13 @@ def original_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: bo
     Returns:
         int: The score gained in this move.
     """
-    # Load the reward parameters from the configuration file
-    reward_params = load_config(params_path, ["rewards"]).get("rewards", {})
-    game_over_penalty = game_over_penalty if game_over_penalty is not None else reward_params.get("game_over_penalty", 1000)
     
-    score = 0
-    for i in range(4):
-        for j in range(4):
-            if new_grid[i, j] > old_grid[i, j]:  # Tile grew -> merge happened
-                score += new_grid[i, j]  # Add merged tile value
+    merged_tiles = new_grid > old_grid
+    merged_values = new_grid[merged_tiles]
                 
-    if is_game_over:
-        score -= game_over_penalty
+    score = 0
+    if len(merged_values) > 0:
+        score += np.sum(merged_values)
     
 
     return score
