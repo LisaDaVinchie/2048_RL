@@ -26,7 +26,7 @@ class TestCNNModel(unittest.TestCase):
             "agent":{
                 "action_size": 4,
                 "grid_size": 4,
-                "n_channels": 11
+                "n_channels": 12
             }      
         }
         
@@ -57,7 +57,7 @@ class TestCNNModel(unittest.TestCase):
         # Check if the model has the correct attributes
         self.assertEqual(self.model.grid_size, 4)
         self.assertEqual(self.model.action_size, 4)
-        self.assertEqual(self.model.n_channels, 11)
+        self.assertEqual(self.model.n_channels, 12)
         self.assertEqual(self.model.middle_channels, [64, 64, 64, 128])
         self.assertEqual(self.model.kernel_sizes, [3, 4, 3])
         self.assertEqual(self.model.padding, [1, 1, 1])
