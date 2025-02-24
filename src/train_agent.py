@@ -126,7 +126,7 @@ for episode in range(n_episodes):
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
         
         # Update the maximum value reached
-        max_value = max(max_value, np.max(state.numpy()))
+        max_value = np.maximum(max_value, np.max(state.numpy()))
     
     # Store the final score
     final_scores.append(total_reward)
