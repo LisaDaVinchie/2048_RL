@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 from utils.import_params_json import load_config
 
-def original_reward(old_grid: np.ndarray, new_grid: np.ndarray, is_game_over: bool, params_path: Path, game_over_penalty: int = None):
+def original_reward(old_grid: np.ndarray, new_grid: np.ndarray, params_path: Path = None, is_game_over: bool = None, game_over_penalty: int = None):
     """
     Compute the score gained in a move based on merges.
     
