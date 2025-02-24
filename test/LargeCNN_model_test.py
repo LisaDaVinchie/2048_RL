@@ -14,12 +14,13 @@ class TestLargeCNNModel(unittest.TestCase):
     def setUp(self):
         self.model_params = {
             "Large_CNN": {
-                "middle_channels": [128, 128, 128, 128]
+                "middle_channels": [128, 128, 128, 128],
+                "kernel_sizes": [1, 3, 5, 7]
             },
             "agent":{
                 "action_size": 4,
                 "grid_size": 4,
-                "n_channels": 11
+                "n_channels": 12
             }      
         }
         
@@ -38,17 +39,21 @@ class TestLargeCNNModel(unittest.TestCase):
     def test_model_initialization(self):
         self.assertEqual(self.model.grid_size, 4)
         self.assertEqual(self.model.action_size, 4)
-        self.assertEqual(self.model.n_channels, 11)
+        self.assertEqual(self.model.n_channels, 12)
         self.assertEqual(self.model.middle_channels, [128, 128, 128, 128])
+        self.assertEqual(self.model.kernel_sizes, [1, 3, 5, 7])
     
     def create_test_tensor(self, batch_size):
-        input_tensor = th.zeros((batch_size, self.model.n_channels, self.model.grid_size, self.model.grid_size))
+        input_tensor = th.zeros((batch_size, 1, self.model.grid_size, self.model.grid_size))
+        possible_values = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+        
         for i in range(batch_size):
-            for row in range (self.model.grid_size):
-                for col in range(self.model.grid_size):
-                    random_position = th.randint(0, self.model.n_channels, (1,)).item()
-                    input_tensor[i, random_position, row, col] = 1
+            for j in range(self.model.grid_size):
+                for k in range(self.model.grid_size):
+                    input_tensor[i, 0, j, k] = th.tensor(possible_values[th.randint(0, len(possible_values), (1,)).item()])
+        
         return input_tensor
+        
     
     def test_forward_1tensor(self):
         batch_size = 1
