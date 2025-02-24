@@ -1,31 +1,37 @@
 import torch as th
-import numpy as np
 
-def to_one_hot(grid: np.ndarray, n_channels: int) -> th.Tensor:
+def to_one_hot(grid: th.Tensor, n_channels: int) -> th.Tensor:
     """
-    Convert the grid into a one-hot encoded tensor.
+    Convert a batch of 2048 grids into a one-hot encoded tensor using PyTorch.
     
     Args:
-        grid (np.ndarray): The 4x4 grid of tile values.
-        max_tile_value (int): The maximum tile value to encode (e.g., 2048).
+        grid (torch.Tensor): A batch of 4x4 grids of shape (batch_size, 4, 4).
+        n_channels (int): The number of channels (log2 of max tile + 1).
     
     Returns:
-        th.Tensor: A tensor of shape (1, num_channels, grid_size, grid_size),
-                   where num_channels is the number of unique tile values.
+        th.Tensor: One-hot encoded tensor of shape (batch_size, n_channels, 4, 4).
     """
-    # Create a list of all possible tile values (powers of 2)
-    tile_values = [2 ** i for i in range(1, int(n_channels) + 1)]
-    num_channels = len(tile_values)
+    exponents = th.where(grid > 0, grid.log2().to(th.int64), th.zeros_like(grid, dtype=th.int64))
+    one_hot_grid = th.nn.functional.one_hot(exponents.squeeze(1), num_classes=n_channels)  # (batch_size, 4, 4, n_channels)
     
-    # Initialize an empty tensor for the one-hot encoded grid
-    one_hot_grid = th.zeros((1, num_channels, grid.shape[0], grid.shape[1]))
+    return one_hot_grid.permute(0, 3, 1, 2).float() # (batch_size, n_channels, 4, 4)
+
+def to_int(one_hot_grid: th.tensor) -> th.tensor:
+    """
+    Reverse the one-hot encoded tensor back to the original grid values.
     
-    # Fill the one-hot grid
-    for i in range(grid.shape[0]):
-        for j in range(grid.shape[1]):
-            if grid[i, j] > 0:
-                # Find the index of the tile value in the list
-                tile_index = tile_values.index(grid[i, j])
-                one_hot_grid[0, tile_index, i, j] = 1
+    Args:
+        one_hot_grid (th.Tensor): A one-hot encoded tensor of shape (batch_size, n_channels, 4, 4).
     
-    return one_hot_grid
+    Returns:
+        th.Tensor: The original grid tensor of shape (batch_size, 4, 4).
+    """
+    # Get the index of the maximum value along the channel dimension (n_channels)
+    
+    exponents = th.argmax(one_hot_grid, dim=1).to(th.float32)
+    
+    grid = 2 ** exponents.unsqueeze(1)
+    
+    grid[grid == 1] -= 1
+    
+    return grid.float()
