@@ -80,10 +80,6 @@ class TestGame2048Env(unittest.TestCase):
                              [0, 4, 0, 2],
                              [4, 0, 4, 0],
                              [0, 16, 0, 16]])
-        # new_grid = np.array([[4, 0, 0, 0],
-        #                      [4, 2, 0, 0],
-        #                      [8, 0, 0, 0],
-        #                      [32, 0, 0, 0]])
         _, reward = self.env._move(old_grid, 3)  # Move left
         self.assertEqual(reward, 44)
     
