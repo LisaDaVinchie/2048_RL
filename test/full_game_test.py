@@ -30,7 +30,7 @@ class TestGame2048(unittest.TestCase):
             [0, 0, 0, 0],
             [0, 0, 0, 0]
         ])
-        new_grid = self.env._move(grid, action=0)
+        new_grid, _ = self.env._move(grid, action=0)
         np.testing.assert_array_equal(new_grid, expected_result)
     
     def test_move_down(self):
@@ -47,7 +47,7 @@ class TestGame2048(unittest.TestCase):
             [0, 0, 0, 0],
             [0, 0, 4, 4]
         ])
-        new_grid = self.env._move(grid, action=1)
+        new_grid, _ = self.env._move(grid, action=1)
         np.testing.assert_array_equal(new_grid, expected_result)
     
     def test_game_over(self):
@@ -67,7 +67,7 @@ class TestGame2048(unittest.TestCase):
         max_tile = 0
         while not self.env.is_game_over(grid) and moves < 500:
             action = np.random.choice([0, 1, 2, 3])  # Random action
-            grid, _ = self.env.step(grid, action)
+            grid, _, _ = self.env.step(grid, action)
             max_tile = max(max_tile, np.max(grid))
             moves += 1
         self.assertTrue(self.env.is_game_over(grid) or moves == 500)

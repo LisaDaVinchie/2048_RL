@@ -25,7 +25,7 @@ class TestGame2048Env(unittest.TestCase):
         old_grid = np.array([[0, 0, 0, 2], [0, 0, 0, 2], [0, 0, 4, 0], [0, 0, 0, 0]])
         expected_new_grid = np.array([[0, 0, 4, 4], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
 
-        new_grid = self.env._move(old_grid, 0)  # Move up
+        new_grid, _ = self.env._move(old_grid, 0)  # Move up
         
         self.assertTrue(np.array_equal(new_grid, expected_new_grid))  # Check if the grid is as expected
     
@@ -33,14 +33,14 @@ class TestGame2048Env(unittest.TestCase):
         """Test if the step method works correctly with a down move."""
         old_grid = np.array([[0, 0, 0, 2], [0, 0, 0, 2], [0, 0, 4, 0], [0, 0, 0, 0]])
         expected_new_grid = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 4, 4]])
-        new_grid = self.env._move(old_grid, 1)  # Move down
+        new_grid, _ = self.env._move(old_grid, 1)  # Move down
         self.assertTrue(np.array_equal(new_grid, expected_new_grid))
 
     def test_step_move_left(self):
         """Test if the step method works correctly with a left move."""
         old_grid = np.array([[0, 2, 0, 2], [0, 0, 0, 4], [0, 0, 0, 0], [0, 0, 0, 0]])
         expected_new_grid = np.array([[4, 0, 0, 0], [4, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
-        new_grid = self.env._move(old_grid, 2)  # Move left
+        new_grid, _ = self.env._move(old_grid, 2)  # Move left
         self.assertTrue(np.array_equal(new_grid, expected_new_grid))  # Check if the grid is as expected
     
     def test_step_move_right(self):
@@ -53,7 +53,7 @@ class TestGame2048Env(unittest.TestCase):
                                       [0, 0, 0, 4],
                                       [0, 0, 0, 0],
                                       [0, 0, 0, 0]])
-        new_grid = self.env._move(old_grid, 3)  # Move right
+        new_grid, _ = self.env._move(old_grid, 3)  # Move right
         self.assertTrue(np.array_equal(new_grid, expected_new_grid))  # Check if the grid is as expected
 
     def test_step_game_over(self):
@@ -63,7 +63,7 @@ class TestGame2048Env(unittest.TestCase):
                              [32, 64, 128, 256],
                              [512, 1024, 2048, 4096],
                              [8192, 16384, 32768, 65536]])
-        _, game_over = self.env.step(old_grid, 0)  # Try any move (no empty cells to merge)
+        _, game_over, _ = self.env.step(old_grid, 0)  # Try any move (no empty cells to merge)
         self.assertEqual(game_over, True)  # The game should be over
 
     def test_merge_tiles(self):
@@ -71,9 +71,22 @@ class TestGame2048Env(unittest.TestCase):
         line = np.array([2, 2, 0, 4])
         expected_merged_line = np.array([4, 4, 0, 0])  # The first two 2's should merge into 4
         
-        merged_line = self.env._merge_tiles(line)
+        merged_line, _ = self.env._merge_tiles(line)
         self.assertTrue(np.array_equal(merged_line, expected_merged_line))  # Should merge the first two 2's into 4 and the 4 stays
 
+    def test_reward(self):
+        """Test if the reward is calculated correctly."""
+        old_grid = np.array([[2, 0, 2, 0],
+                             [0, 4, 0, 2],
+                             [4, 0, 4, 0],
+                             [0, 16, 0, 16]])
+        # new_grid = np.array([[4, 0, 0, 0],
+        #                      [4, 2, 0, 0],
+        #                      [8, 0, 0, 0],
+        #                      [32, 0, 0, 0]])
+        _, reward = self.env._move(old_grid, 3)  # Move left
+        self.assertEqual(reward, 44)
+    
     def test_is_game_over_no_moves(self):
         """Test if the game over condition works properly (no moves left)."""
         grid = np.array([[2, 4, 8, 16],

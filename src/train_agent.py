@@ -79,9 +79,11 @@ while len(agent.replay_buffer) < agent.batch_size:
     done = False
     while not done:
         action = np.random.randint(0, 4)
-        next_state, done = game_env.step(state.numpy(), action)
-        reward = reward_function(state.numpy(), next_state, done, params_file_path)
+        old_reward = game_env.merge_reward
+        next_state, done, merge_reward = game_env.step(state.numpy(), action)
+        # reward = reward_function(state.numpy(), next_state, done, params_file_path)
         next_state = th.tensor(next_state, dtype=th.float32)
+        reward = merge_reward - old_reward
         agent.store_to_buffer(state.unsqueeze(0), action, reward, next_state.unsqueeze(0), done)
         state = next_state
 
@@ -109,11 +111,14 @@ for episode in range(n_episodes):
     while not done:
         # Choose an action
         action, is_exploratory = agent.choose_action(state.unsqueeze(0).unsqueeze(0), training=True)
+        old_reward = game_env.merge_reward
         
         # Take the action and observe the next state and reward
-        next_state, done = game_env.step(state.numpy(), action)
+        next_state, done, merge_reward = game_env.step(state.numpy(), action)
         
-        reward = reward_function(state.numpy(), next_state, done, params_file_path)
+        # reward = reward_function(state.numpy(), next_state, done, params_file_path)
+        
+        reward = merge_reward - old_reward
         
         next_state = th.tensor(next_state, dtype=th.float32) # Convert the next state to a tensor
         # Store the experience in the replay buffer
