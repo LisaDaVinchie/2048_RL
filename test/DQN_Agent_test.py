@@ -42,6 +42,7 @@ class TestDQNAgent(unittest.TestCase):
                 "explore_for": 500,
                 "epsilon_decay_kind": "multiply",
                 "steps_ahead": 2,
+                "tau": 0.007
             }
         }
         
@@ -90,10 +91,12 @@ class TestDQNAgent(unittest.TestCase):
         self.assertEqual(self.agent.explore_for, 500)
         self.assertEqual(self.agent.epsilon_decay_kind, "multiply")
         self.assertEqual(self.agent.steps_ahead, 2)
+        self.assertEqual(self.agent.tau, 0.007)
+        
 
     def test_choose_action(self):
         """Test if the agent selects valid actions."""
-        state = th.randn(1, self.agent.state_size)
+        state = np.random.rand(1, 1, 4, 4)
         action, _ = self.agent.choose_action(state)
         self.assertIn(action, range(self.agent.action_size))
 

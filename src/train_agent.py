@@ -75,16 +75,15 @@ print("Heat up the replay buffer\n")
 # Heat up the replay buffer
 while len(agent.replay_buffer) < agent.batch_size:
     state = game_env.reset()
-    state = th.tensor(state, dtype=th.float32)
+    print(f"\nstate shape: {state.shape}\n")
     done = False
     while not done:
         action = np.random.randint(0, 4)
         old_reward = game_env.merge_reward
-        next_state, done, merge_reward = game_env.step(state.numpy(), action)
+        next_state, done, merge_reward = game_env.step(state, action)
         # reward = reward_function(state.numpy(), next_state, done, params_file_path)
-        next_state = th.tensor(next_state, dtype=th.float32)
         reward = merge_reward - old_reward
-        agent.store_to_buffer(state.unsqueeze(0), action, reward, next_state.unsqueeze(0), done)
+        agent.store_to_buffer(state, action, reward, next_state, done)
         state = next_state
 
 final_scores = []
@@ -99,7 +98,6 @@ for episode in range(n_episodes):
         print(f"Episode {episode + 1}/{n_episodes}")
         
     state = game_env.reset() # Put the grid in the initial state
-    state = th.tensor(state, dtype=th.float32) # Convert the state to a tensor
     done = False # Initialize the done variable
     is_action_exploratory = [] # Initialize the list of exploratory actions
     
@@ -111,35 +109,29 @@ for episode in range(n_episodes):
     print("\n\nGame started\n")
     while not done:
         # Choose an action
-        action, is_exploratory = agent.choose_action(state.unsqueeze(0).unsqueeze(0), training=True)
+        action, is_exploratory = agent.choose_action(state, training=True)
         old_reward = game_env.merge_reward
         
         # Take the action and observe the next state and reward
-        next_state, done, merge_reward = game_env.step(state.numpy(), action)
-        
-        
-        # reward = reward_function(state.numpy(), next_state, done, params_file_path)
+        next_state, done, merge_reward = game_env.step(state, action)
         
         total_reward += merge_reward - old_reward
         
-        print(f"Merge reward is: {reward}\n")
+        # print(f"Merge reward is: {reward}\n")
         
-        next_state = th.tensor(next_state, dtype=th.float32) # Convert the next state to a tensor
-        # Store the experience in the replay buffer
-        
-        if not done and np.array_equal(state.numpy(), next_state.numpy()):
+        if not done and np.array_equal(state, next_state):
             total_reward -= 10
         
-        agent.store_to_buffer(state.unsqueeze(0), action, reward, next_state.unsqueeze(0), done)
+        agent.store_to_buffer(state, action, reward, next_state, done)
         
         state = next_state # Update the state
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
         
         # Update the maximum value reached
-        max_value = np.maximum(max_value, np.max(state.numpy()))
+        max_value = np.maximum(max_value, np.max(state))
         
-    print("Reward is: ", total_reward)
-    print("Max value is: ", max_value)
+    # print("Reward is: ", total_reward)
+    # print("Max value is: ", max_value)
     
     # Store the final score
     final_scores.append(total_reward)
