@@ -22,7 +22,7 @@ class DQN_Agent:
                  batch_size: int = None, target_update_freq: int = None,
                  learn_iterations: int = None, explore_for: int = None,
                  steps_ahead: int = None, n_channels: int = None,
-                 epsilon_decay_kind: str = None):
+                 epsilon_decay_kind: str = None, tau: float = None):
         """Initialise the agent with the parameters"""
         
         agent_params = load_config(params_path, ["agent"]).get("agent", {})
@@ -40,6 +40,7 @@ class DQN_Agent:
         self.epsilon_decay_kind = epsilon_decay_kind if epsilon_decay_kind is not None else agent_params.get("epsilon_decay_kind", "multiply")
         self.explore_for = explore_for if explore_for is not None else agent_params.get("explore_for", 500)
         self.steps_ahead = steps_ahead if steps_ahead is not None else agent_params.get("steps_ahead", 1)
+        self.tau = tau if tau is not None else agent_params.get("tau", 0.001)
         
         if self.epsilon_decay_kind == "exponential":
             self.epsilon_update_class = exponential(params_path)
@@ -66,7 +67,7 @@ class DQN_Agent:
         model_clone.eval()  # Set to eval mode (optional but recommended)
         return model_clone
         
-    def store_to_buffer(self, state: th.tensor, action: int, reward: int, next_state: th.tensor, done: bool):
+    def store_to_buffer(self, state: np.ndarray, action: int, reward: int, next_state: np.ndarray, done: bool):
         """Store the experience to the replay buffer as (state, action, reward, next_state, done)"""
         
         if state is None:
@@ -84,17 +85,18 @@ class DQN_Agent:
             self.replay_buffer.append((state, action, R, next_state, done))
             self.n_step_buffer.clear()
     
-    def compute_Q_values(self, states: th.tensor, actions: th.tensor, rewards: th.tensor, next_states: th.tensor, dones: th.tensor):
+    def _compute_Q_values(self, states: th.tensor, actions: th.tensor, rewards: th.tensor, next_states: th.tensor, dones: th.tensor):
         """Compute the Q values for the current state and the target Q values"""
         
         # Q pred
         current_q_values = self.model(states).gather(1, actions.long().unsqueeze(1)).squeeze(1)
         
+        non_terminal_mask = 1 - dones.float()
         # Q target
         with th.no_grad():
-            next_q_values = (self.target_model(next_states).max(dim=1)[0]) * (1 - dones.float())
+            next_q_values = (self.target_model(next_states).max(dim=1)[0]) * non_terminal_mask
             # Compute the target Q values, discounting the future rewards
-            target_q_values = rewards + self.gamma * next_q_values * (1 - dones.float())
+            target_q_values = rewards + self.gamma * next_q_values * non_terminal_mask
             
         return current_q_values, target_q_values
     
@@ -111,13 +113,13 @@ class DQN_Agent:
             minibatch = random.sample(self.replay_buffer, self.batch_size)
             
             # Extract experiences from the minibatch
-            states = th.stack([exp[0] for exp in minibatch])
+            states = th.tensor(np.array([exp[0] for exp in minibatch]), dtype=th.float32)
             actions = th.LongTensor([exp[1] for exp in minibatch])
             rewards = th.FloatTensor([exp[2] for exp in minibatch])
-            next_states = th.stack([exp[3] for exp in minibatch])
+            next_states = th.tensor(np.array([exp[3] for exp in minibatch]), dtype=th.float32)
             dones = th.BoolTensor([exp[4] for exp in minibatch])
             
-            self.current_q_values, target_q_values = self.compute_Q_values(states, actions, rewards, next_states, dones)
+            self.current_q_values, target_q_values = self._compute_Q_values(states.unsqueeze(1), actions, rewards, next_states.unsqueeze(1), dones)
             self.loss = self.loss_function(self.current_q_values, target_q_values)
             
             # Compute the loss
@@ -129,11 +131,16 @@ class DQN_Agent:
         self.epsilon = self.epsilon_update_class.update(self.epsilon, episode)
         
         if episode % self.target_update_freq == 0:
-            self.update_target_model_weights()
+            self._update_target_model_weights()
     
-    def choose_action(self, state: th.tensor, training: bool=True):
+    def choose_action(self, state: np.ndarray, training: bool=True):
         """Choose an exploration or exploitation based on the epsilon-greedy policy
         and track if the action is exploration or exploitation"""
+        
+        if isinstance(state, th.Tensor):
+            print("State is a tensor")
+        elif isinstance(state, np.ndarray):
+            print("State is a numpy array")
         
         if training and np.random.rand() <= self.epsilon:
             # Exploration: return a random number between 0 and 4
@@ -141,17 +148,16 @@ class DQN_Agent:
             action = np.random.choice(self.action_size)
             is_exploration = True
         else:
-            
             # Exploitation: return the action with the highest Q value
-            with th.no_grad():
-                q_values = self.model(state)
-            action = th.argmax(q_values).item()
+            q_values = self.model(th.tensor(state, dtype=th.float32).unsqueeze(0))
+            action = np.argmax(q_values.detach().numpy())
             is_exploration = False
         return action, is_exploration
             
-    def update_target_model_weights(self):
+    def _update_target_model_weights(self):
         """Update the target model"""
-        self.target_model.load_state_dict(self.model.state_dict())
+        for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
+            target_param.data.copy_(self.tau * param.data + (1.0 - self.tau) * target_param.data)
         
     def save(self, path):
         """Save the model weights"""
