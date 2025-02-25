@@ -137,11 +137,6 @@ class DQN_Agent:
         """Choose an exploration or exploitation based on the epsilon-greedy policy
         and track if the action is exploration or exploitation"""
         
-        if isinstance(state, th.Tensor):
-            print("State is a tensor")
-        elif isinstance(state, np.ndarray):
-            print("State is a numpy array")
-        
         if training and np.random.rand() <= self.epsilon:
             # Exploration: return a random number between 0 and 4
             # return a random number between 0 and 4
