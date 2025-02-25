@@ -114,7 +114,6 @@ class LinearModel(nn.Module):
         
     def forward(self, x: th.Tensor) -> th.Tensor:
         x = switch_representation(self.representation_kind, self.n_channels, x)
-        # Reshape to batch_size x (grid_size * grid_size)
         x = x.view(x.size(0), -1)
         
         x = self.fc1(x)
