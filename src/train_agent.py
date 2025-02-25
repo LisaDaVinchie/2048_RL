@@ -69,13 +69,12 @@ agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
 grid_size = agent.grid_size
 # Initialise the game environment
 game_env = Game2048_env(size=grid_size)
-print("Game environment initialised\n")
+print("Game environment initialised\n", flush=True)
 
-print("Heat up the replay buffer\n")
+print("Heat up the replay buffer\n", flush=True)
 # Heat up the replay buffer
 while len(agent.replay_buffer) < agent.batch_size:
     state = game_env.reset()
-    print(f"\nstate shape: {state.shape}\n")
     done = False
     while not done:
         action = np.random.randint(0, 4)
@@ -92,10 +91,10 @@ train_epsilon = []
 train_loss = []
 train_Q_values = []
 
-print("Training the agent\n")
+print("Training the agent\n", flush=True)
 for episode in range(n_episodes):
     if (episode + 1) % print_every == 0:
-        print(f"Episode {episode + 1}/{n_episodes}")
+        print(f"Episode {episode + 1}/{n_episodes}", flush=True)
         
     state = game_env.reset() # Put the grid in the initial state
     done = False # Initialize the done variable
@@ -106,7 +105,6 @@ for episode in range(n_episodes):
     
     max_value = 0
     total_reward = 0 # Initialize the total reward
-    print("\n\nGame started\n")
     while not done:
         # Choose an action
         action, is_exploratory = agent.choose_action(state, training=True)
@@ -116,8 +114,6 @@ for episode in range(n_episodes):
         next_state, done, merge_reward = game_env.step(state, action)
         
         total_reward += merge_reward - old_reward
-        
-        # print(f"Merge reward is: {reward}\n")
         
         if not done and np.array_equal(state, next_state):
             total_reward -= 10
@@ -129,9 +125,6 @@ for episode in range(n_episodes):
         
         # Update the maximum value reached
         max_value = np.maximum(max_value, np.max(state))
-        
-    # print("Reward is: ", total_reward)
-    # print("Max value is: ", max_value)
     
     # Store the final score
     final_scores.append(total_reward)
@@ -144,7 +137,7 @@ for episode in range(n_episodes):
     train_loss.append(agent.loss)
     train_Q_values.append(agent.current_q_values)
     if (episode + 1) % print_every == 0:
-        print(f"Total reward: {total_reward}\n")
+        print(f"Total reward: {total_reward}\n", flush=True)
     
 elapsed_time = time() - start_time
 
@@ -185,18 +178,11 @@ with open(final_score_path, 'w') as f:
         if i < len(train_loss) - 1:
             f.write("\t")
     f.write("\n\n")
-    # f.write("Q values:\n")
-    # for i, q_values in enumerate(train_Q_values):
-    #     f.write(f"{q_values}")
-    #     f.write("\n")
-    #     if i < len(train_Q_values) - 1:
-    #         f.write("\t")
-    # f.write("\n\n")
     
     f.write("Parameters:")
     f.write(json_str)
     
-print(f"Final scores saved to {final_score_path}\n")
+print(f"Final scores saved to {final_score_path}\n", flush=True)
 
-print(f"Training completed in {((elapsed_time) / 60):.4f} minutes\n\n")
+print(f"Training completed in {((elapsed_time) / 60):.4f} minutes\n\n", flush=True)
         
