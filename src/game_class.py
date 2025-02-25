@@ -7,7 +7,7 @@ class Game2048_env:
         self.size = size
         self.max_number = 2 ** (n_channels - 1)
         
-    def reset(self):
+    def reset(self) -> np.ndarray:
         """Reset the grid and add a new tile"""
         grid = np.zeros((self.size, self.size), dtype=int)
         self._add_new_tile(grid)
