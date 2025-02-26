@@ -6,6 +6,7 @@ import json
 from time import time
 
 from utils.import_params_json import load_config
+from utils.visualize_game import print_grid
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from models import CNN_model, LinearModel, Large_CNN # Import the neural network model class
 from game_class import Game2048_env # Import the game class
@@ -73,17 +74,32 @@ print("Game environment initialised\n", flush=True)
 
 print("Heat up the replay buffer\n", flush=True)
 # Heat up the replay buffer
+i = 0
 while len(agent.replay_buffer) < agent.batch_size:
     state = game_env.reset()
     done = False
+    # print("Game number: ", i)
+    i += 1
+    # print_grid(state)
+    max_value = 0
     while not done:
         action = np.random.randint(0, 4)
         old_reward = game_env.merge_reward
         next_state, done, merge_reward = game_env.step(state, action)
+        # print_grid(next_state)
         # reward = reward_function(state.numpy(), next_state, done, params_file_path)
         reward = merge_reward - old_reward
+         # Update the maximum value reached
+        new_max = np.max(next_state)
+        if new_max > max_value:
+            max_value = new_max
+            reward += new_max
+            
         agent.store_to_buffer(state, action, reward, next_state, done)
+        if done:
+            break
         state = next_state
+    # print("Game ended\n\n")
 
 final_scores = []
 max_value_reached = []
@@ -108,23 +124,30 @@ for episode in range(n_episodes):
     while not done:
         # Choose an action
         action, is_exploratory = agent.choose_action(state, training=True)
+        is_action_exploratory.append(is_exploratory) # Store the exploratory action
         old_reward = game_env.merge_reward
         
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
         
-        total_reward += merge_reward - old_reward
+        reward = merge_reward - old_reward
         
         if not done and np.array_equal(state, next_state):
-            total_reward -= 1
-        
-        agent.store_to_buffer(state, action, reward, next_state, done)
-        
-        state = next_state # Update the state
-        is_action_exploratory.append(is_exploratory) # Store the exploratory action
+            reward -= 1
         
         # Update the maximum value reached
-        max_value = np.maximum(max_value, np.max(state))
+        new_max = np.max(next_state)
+        if new_max > max_value:
+            max_value = new_max
+            reward += new_max
+            
+        agent.store_to_buffer(state, action, reward, next_state, done)
+        
+        if done:
+            break
+        
+        total_reward += reward # Update the total reward
+        state = next_state # Update the state
     
     # Store the final score
     final_scores.append(total_reward)
