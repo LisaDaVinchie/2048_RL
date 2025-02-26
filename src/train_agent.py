@@ -88,7 +88,7 @@ while len(agent.replay_buffer) < agent.batch_size:
         next_state, done, merge_reward = game_env.step(state, action)
         # print_grid(next_state)
         # reward = reward_function(state.numpy(), next_state, done, params_file_path)
-        reward = merge_reward - old_reward
+        reward = merge_reward
         
         if np.array_equal(state, next_state):
             reward -= 1
@@ -133,8 +133,9 @@ for episode in range(n_episodes):
         
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
+        print(merge_reward)
         
-        reward = merge_reward - old_reward
+        reward = merge_reward
         
         if np.array_equal(state, next_state):
             reward -= 1
