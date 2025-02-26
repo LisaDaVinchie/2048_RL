@@ -1,4 +1,11 @@
 import torch as th
+import numpy as np
+
+def to_one_hot_np(grid: np.ndarray, n_channels: int) -> np.ndarray:
+    exponents = np.log2(grid, where=(grid > 0), out=np.zeros_like(grid, dtype=float)).astype(int)
+    one_hot_grid = np.eye(n_channels, dtype=np.float32)[exponents]
+    
+    return one_hot_grid
 
 def to_one_hot(grid: th.Tensor, n_channels: int) -> th.Tensor:
     """
@@ -11,8 +18,9 @@ def to_one_hot(grid: th.Tensor, n_channels: int) -> th.Tensor:
     Returns:
         th.Tensor: One-hot encoded tensor of shape (batch_size, n_channels, 4, 4).
     """
-    exponents = th.where(grid > 0, grid.log2().to(th.int64), th.zeros_like(grid, dtype=th.int64))
-    one_hot_grid = th.nn.functional.one_hot(exponents.squeeze(1), num_classes=n_channels)  # (batch_size, 4, 4, n_channels)
+    with th.no_grad():
+        exponents = th.where(grid > 0, grid.log2().to(th.int64), th.zeros_like(grid, dtype=th.int64))
+        one_hot_grid = th.nn.functional.one_hot(exponents.squeeze(1), num_classes=n_channels)  # (batch_size, 4, 4, n_channels)
     
     return one_hot_grid.permute(0, 3, 1, 2).float() # (batch_size, n_channels, 4, 4)
 
