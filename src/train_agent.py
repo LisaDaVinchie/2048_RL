@@ -10,8 +10,8 @@ from utils.visualize_game import print_grid
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from models import CNN_model, LinearModel, Large_CNN # Import the neural network model class
 from game_class import Game2048_env # Import the game class
-from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward, sum_maxval_reward
-reward_function = original_reward
+# from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward, sum_maxval_reward
+# reward_function = original_reward
 start_time = time()
 
 # Load the configuration file
@@ -89,7 +89,11 @@ while len(agent.replay_buffer) < agent.batch_size:
         # print_grid(next_state)
         # reward = reward_function(state.numpy(), next_state, done, params_file_path)
         reward = merge_reward - old_reward
-         # Update the maximum value reached
+        
+        if np.array_equal(state, next_state):
+            reward -= 1
+            
+        # Update the maximum value reached
         new_max = np.max(next_state)
         if new_max > max_value:
             max_value = new_max
@@ -132,7 +136,7 @@ for episode in range(n_episodes):
         
         reward = merge_reward - old_reward
         
-        if not done and np.array_equal(state, next_state):
+        if np.array_equal(state, next_state):
             reward -= 1
         
         # Update the maximum value reached
