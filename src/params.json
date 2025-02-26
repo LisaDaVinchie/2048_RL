@@ -5,7 +5,7 @@
         "n_channels": 9,
         "gamma": 0.99,
         "epsilon": 0.9,
-        "epsilon_decay": 0.995,
+        "epsilon_decay": 0.979,
         "epsilon_min": 0.01,
         "tau": 0.01,
         "buffer_maxlen": 50000,
@@ -20,7 +20,7 @@
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "training": {
-        "n_episodes": 300,
+        "n_episodes": 20,
         "learning_rate": 0.00001,
         "print_every": 10,
         "model_kind": "cnn",
