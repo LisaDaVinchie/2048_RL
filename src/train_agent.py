@@ -116,7 +116,7 @@ for episode in range(n_episodes):
         total_reward += merge_reward - old_reward
         
         if not done and np.array_equal(state, next_state):
-            total_reward -= 10
+            total_reward -= 1
         
         agent.store_to_buffer(state, action, reward, next_state, done)
         
