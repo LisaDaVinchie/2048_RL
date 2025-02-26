@@ -144,7 +144,7 @@ class DQN_Agent:
             is_exploration = True
         else:
             # Exploitation: return the action with the highest Q value
-            q_values = self.model(th.tensor(state, dtype=th.float32).unsqueeze(0))
+            q_values = self.model(th.tensor(state, dtype=th.float32).unsqueeze(0).unsqueeze(0))
             action = np.argmax(q_values.detach().numpy())
             is_exploration = False
         return action, is_exploration
