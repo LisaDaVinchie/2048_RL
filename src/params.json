@@ -20,7 +20,7 @@
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "training": {
-        "n_episodes": 1000,
+        "n_episodes": 300,
         "learning_rate": 0.00001,
         "print_every": 10,
         "model_kind": "cnn",
