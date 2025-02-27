@@ -7,6 +7,7 @@ from time import time
 
 from utils.import_params_json import load_config
 from utils.visualize_game import print_grid
+from utils.representations import to_one_hot, from_one_hot, to_log2, from_log2
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from models import CNN_model, LinearModel, Large_CNN # Import the neural network model class
 from game_class import Game2048_env # Import the game class
@@ -34,6 +35,7 @@ print_every: int = None
 model_kind: str = None
 loss_kind: str = None
 optimizer_kind: str = None
+representation_kind: str = None
 locals().update(config["training"])
 
 # Initialise the model
@@ -63,9 +65,22 @@ elif optimizer_kind == "rmsprop":
 else:
     raise ValueError("Invalid optimizer kind")
 
+if representation_kind == "raw":
+    encode_function = lambda x: x
+    decode_function = lambda x: x
+elif representation_kind == "log2":
+    encode_function = lambda x: to_log2(x, n_channels)
+    decode_function = lambda x: from_log2(x, n_channels)
+elif representation_kind == "one_hot":
+    encode_function = lambda x: to_one_hot(x, n_channels)
+    decode_function = lambda x: from_one_hot(x)
+else:
+    raise ValueError("Invalid representation kind")
+
 # Initialise the agent
 
 agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
+n_channels = agent.n_channels
 
 grid_size = agent.grid_size
 # Initialise the game environment
@@ -78,33 +93,30 @@ i = 0
 while len(agent.replay_buffer) < agent.batch_size:
     state = game_env.reset()
     done = False
-    # print("Game number: ", i)
     i += 1
-    # print_grid(state)
     max_value = 0
     old_reward = 0
     while not done:
         action = np.random.randint(0, 4)
         next_state, done, merge_reward = game_env.step(state, action)
-        # print_grid(next_state)
-        # reward = reward_function(state.numpy(), next_state, done, params_file_path)
         reward = merge_reward - old_reward
         
-        if not done and np.array_equal(state, next_state):
-            reward -= 10
+        # if not done and np.array_equal(state, next_state):
+        #     reward -= 10
             
         # Update the maximum value reached
         new_max = np.max(next_state)
         if new_max > max_value:
             max_value = new_max
             reward += new_max
-            
-        agent.store_to_buffer(state, action, reward, next_state, done)
+        
+        stored_state = encode_function(state)
+        stored_next_state = encode_function(next_state)
+        agent.store_to_buffer(stored_state, action, reward, stored_next_state, done)
         if done:
             break
         state = next_state
         old_reward = reward
-    # print("Game ended\n\n")
 
 final_scores = []
 max_value_reached = []
@@ -129,17 +141,17 @@ for episode in range(n_episodes):
     old_reward = 0
     while not done:
         # Choose an action
-        action, is_exploratory = agent.choose_action(state, training=True)
+        stored_state = encode_function(state)
+        action, is_exploratory = agent.choose_action(stored_state, training=True)
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
         
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
-        print(merge_reward)
         
         reward = merge_reward - old_reward
         
-        if not done and np.array_equal(state, next_state):
-            reward -= 10
+        # if not done and np.array_equal(state, next_state):
+        #     reward -= 10
         
         # Update the maximum value reached
         new_max = np.max(next_state)
@@ -151,8 +163,8 @@ for episode in range(n_episodes):
             break
         
         old_reward = reward
-            
-        agent.store_to_buffer(state, action, reward, next_state, done)
+        stored_next_state = encode_function(next_state)
+        agent.store_to_buffer(stored_state, action, reward, stored_next_state, done)
         
         
         total_reward += reward # Update the total reward
