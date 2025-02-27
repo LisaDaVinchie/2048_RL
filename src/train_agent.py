@@ -99,16 +99,16 @@ while len(agent.replay_buffer) < agent.batch_size:
     while not done:
         action = np.random.randint(0, 4)
         next_state, done, merge_reward = game_env.step(state, action)
-        reward = merge_reward - old_reward
+        reward = merge_reward
         
         # if not done and np.array_equal(state, next_state):
         #     reward -= 10
             
         # Update the maximum value reached
-        new_max = np.max(next_state)
-        if new_max > max_value:
-            max_value = new_max
-            reward += new_max
+        # new_max = np.max(next_state)
+        # if new_max > max_value:
+        #     max_value = new_max
+        #     reward += new_max
         
         stored_state = encode_function(state)
         stored_next_state = encode_function(next_state)
@@ -148,16 +148,16 @@ for episode in range(n_episodes):
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
         
-        reward = merge_reward - old_reward
+        reward = merge_reward
         
         # if not done and np.array_equal(state, next_state):
         #     reward -= 10
         
         # Update the maximum value reached
-        new_max = np.max(next_state)
-        if new_max > max_value:
-            max_value = new_max
-            reward += new_max
+        # new_max = np.max(next_state)
+        # if new_max > max_value:
+        #     max_value = new_max
+        #     reward += new_max
         
         if done:
             break
