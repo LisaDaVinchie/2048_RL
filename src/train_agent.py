@@ -82,16 +82,16 @@ while len(agent.replay_buffer) < agent.batch_size:
     i += 1
     # print_grid(state)
     max_value = 0
+    old_reward = 0
     while not done:
         action = np.random.randint(0, 4)
-        old_reward = game_env.merge_reward
         next_state, done, merge_reward = game_env.step(state, action)
         # print_grid(next_state)
         # reward = reward_function(state.numpy(), next_state, done, params_file_path)
-        reward = merge_reward
+        reward = merge_reward - old_reward
         
-        if np.array_equal(state, next_state):
-            reward -= 1
+        if not done and np.array_equal(state, next_state):
+            reward -= 10
             
         # Update the maximum value reached
         new_max = np.max(next_state)
@@ -103,6 +103,7 @@ while len(agent.replay_buffer) < agent.batch_size:
         if done:
             break
         state = next_state
+        old_reward = reward
     # print("Game ended\n\n")
 
 final_scores = []
@@ -125,31 +126,34 @@ for episode in range(n_episodes):
     
     max_value = 0
     total_reward = 0 # Initialize the total reward
+    old_reward = 0
     while not done:
         # Choose an action
         action, is_exploratory = agent.choose_action(state, training=True)
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
-        old_reward = game_env.merge_reward
         
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
         print(merge_reward)
         
-        reward = merge_reward
+        reward = merge_reward - old_reward
         
-        if np.array_equal(state, next_state):
-            reward -= 1
+        if not done and np.array_equal(state, next_state):
+            reward -= 10
         
         # Update the maximum value reached
         new_max = np.max(next_state)
         if new_max > max_value:
             max_value = new_max
             reward += new_max
-            
-        agent.store_to_buffer(state, action, reward, next_state, done)
         
         if done:
             break
+        
+        old_reward = reward
+            
+        agent.store_to_buffer(state, action, reward, next_state, done)
+        
         
         total_reward += reward # Update the total reward
         state = next_state # Update the state
