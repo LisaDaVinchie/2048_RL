@@ -4,17 +4,10 @@ from torch.nn import functional as F
 from typing import Tuple
 from pathlib import Path
 from utils.import_params_json import load_config
-from utils.one_hot_encode import to_one_hot
 
-def switch_representation(representation_kind: str, n_channels: int, x: th.Tensor) -> th.Tensor:
-    if representation_kind == "raw":
-        return x
-    elif representation_kind == "log2":
-        return th.log2(x + 1) / n_channels
-    elif representation_kind == "one_hot":
-        return to_one_hot(x, n_channels)
-    else:
-        raise ValueError("Invalid representation kind")
+def get_representation_kind(params_path: Path, representation_kind: str = None) -> str:
+    config = load_config(params_path, ["training"]).get("training", {})
+    return representation_kind if representation_kind is not None else config.get("representation_kind", "log2")
 
 class CNN_model(nn.Module):
     def __init__(self, params_path: Path, grid_size: int = None, action_size: int = None,
@@ -32,14 +25,13 @@ class CNN_model(nn.Module):
         self.kernel_sizes = kernel_sizes if kernel_sizes is not None else model_params.get("kernel_sizes", (2, 2, 2))
         self.padding = padding if padding is not None else model_params.get("padding", (1, 1, 1))
         self.softmax = softmax if softmax is not None else model_params.get("softmax", True)
-        self.representation_kind = representation_kind if representation_kind is not None else model_params.get("representation_kind", "log2")
+        self.representation_kind = get_representation_kind(params_path, representation_kind)
         
         self.in_channels = 1
         
         if self.representation_kind == "one_hot":
             self.in_channels *= self.n_channels
             
-        
         final_grid_size = self.grid_size - sum(self.kernel_sizes) + len(self.kernel_sizes) + 2 * sum(self.padding)
         
         if final_grid_size < 1:
@@ -71,18 +63,13 @@ class CNN_model(nn.Module):
         self.activation = nn.ReLU()
         
     def forward(self, x: th.Tensor) -> th.Tensor:
-        x = switch_representation(self.representation_kind, self.in_channels, x)
-        
         x = self.activation(self.bn1(self.conv1(x)))
         x = self.activation(self.bn2(self.conv2(x)))
         x = self.activation(self.bn3(self.conv3(x)))
         x = x.view(x.size(0), -1)
         x = self.activation(self.fc1(x))
         x = self.fc2(x)
-        if self.softmax:
-            return F.softmax(x, dim=1)
-        else:
-            return x
+        return x
         
 class LinearModel(nn.Module):
     def __init__(self, params_path: Path, grid_size: int = None, action_size: int = None, middle_channels: Tuple[int, int, int] = None, n_channels: int = None, representation_kind: str = None):
@@ -92,7 +79,7 @@ class LinearModel(nn.Module):
         self.grid_size = grid_size if grid_size is not None else model_params.get("grid_size", 4)
         self.action_size = action_size if action_size is not None else model_params.get("action_size", 4)
         self.n_channels = n_channels if n_channels is not None else model_params.get("n_channels", 11)
-        self.representation_kind = representation_kind if representation_kind is not None else model_params.get("representation_kind", "log2")
+        self.representation_kind = get_representation_kind(params_path, representation_kind)
         
         model_params = load_config(params_path, ["Linear_model"]).get("Linear_model", {})
         self.middle_channels = middle_channels if middle_channels is not None else model_params.get("middle_channels", (16, 32, 64))
@@ -113,7 +100,6 @@ class LinearModel(nn.Module):
         self.activation = nn.ReLU()
         
     def forward(self, x: th.Tensor) -> th.Tensor:
-        x = switch_representation(self.representation_kind, self.n_channels, x)
         x = x.view(x.size(0), -1)
         
         x = self.fc1(x)
@@ -167,8 +153,7 @@ class Large_CNN(nn.Module):
         self.dense2 = nn.Linear(self.middle_channels[3], self.action_size)
     
     def forward(self, x: th.tensor):
-        new_x = switch_representation("one_hot", self.n_channels, x)
-        x = F.relu(self.conv1(new_x))
+        x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
         x = nn.Flatten()(x)
