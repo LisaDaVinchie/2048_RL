@@ -4,7 +4,6 @@ import random
 import torch as th
 import torch.nn as nn
 import copy
-import math
 from pathlib import Path
 from utils.import_params_json import load_config
 from epsilon_update import exponential, multiply
@@ -112,6 +111,7 @@ class DQN_Agent:
             
             minibatch = random.sample(self.replay_buffer, self.batch_size)
             
+            
             # Extract experiences from the minibatch
             states = th.tensor(np.array([exp[0] for exp in minibatch]), dtype=th.float32)
             actions = th.LongTensor([exp[1] for exp in minibatch])
@@ -119,7 +119,7 @@ class DQN_Agent:
             next_states = th.tensor(np.array([exp[3] for exp in minibatch]), dtype=th.float32)
             dones = th.BoolTensor([exp[4] for exp in minibatch])
             
-            self.current_q_values, target_q_values = self._compute_Q_values(states.unsqueeze(1), actions, rewards, next_states.unsqueeze(1), dones)
+            self.current_q_values, target_q_values = self._compute_Q_values(states, actions, rewards, next_states, dones)
             self.loss = self.loss_function(self.current_q_values, target_q_values)
             
             # Compute the loss
@@ -144,7 +144,7 @@ class DQN_Agent:
             is_exploration = True
         else:
             # Exploitation: return the action with the highest Q value
-            q_values = self.model(th.tensor(state, dtype=th.float32).unsqueeze(0).unsqueeze(0))
+            q_values = self.model(th.tensor(state, dtype=th.float32).unsqueeze(0))
             action = np.argmax(q_values.detach().numpy())
             is_exploration = False
         return action, is_exploration
