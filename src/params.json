@@ -2,7 +2,7 @@
     "agent":{
         "action_size": 4,
         "grid_size": 4,
-        "n_channels": 9,
+        "n_channels": 13,
         "gamma": 0.99,
         "epsilon": 0.9,
         "epsilon_decay": 0.979,
@@ -11,13 +11,11 @@
         "buffer_maxlen": 50000,
         "batch_size": 1024,
         "target_update_freq": 20,
-        "learn_iterations": 50,
+        "learn_iterations": 100,
         "explore_for": 10,
         "steps_ahead": 2,
         "epsilon_decay_kind": "multiply",
-        "representation_kind": "one_hot",
-        "_possible_decay_kinds": ["multiply", "exponential"],
-        "_possible_representation_kinds": ["raw", "log2", "one_hot"]
+        "_possible_decay_kinds": ["multiply", "exponential"]
     },
     "training": {
         "n_episodes": 300,
@@ -25,10 +23,12 @@
         "print_every": 10,
         "model_kind": "cnn",
         "optimizer_kind": "adam",
-        "loss_kind": "mse",
+        "loss_kind": "huber",
+        "representation_kind": "one_hot",
         "_possible_models": ["cnn", "linear", "large_cnn"],
         "_possible_losses": ["mse", "huber"],
-        "_possible_optimizers": ["adam", "sgd", "rmsprop"]
+        "_possible_optimizers": ["adam", "sgd", "rmsprop"],
+        "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
     "CNN_model": {
         "middle_channels": [128, 128, 128, 64],
@@ -40,7 +40,7 @@
         "middle_channels": [1024, 1024, 1024]
     },
     "Large_CNN": {
-        "middle_channels": [256, 256, 256, 128],
+        "middle_channels": [64, 64, 64, 64],
         "kernel_sizes": [1, 3, 5, 7]
     },
     "actions": {
