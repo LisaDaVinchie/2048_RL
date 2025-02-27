@@ -15,7 +15,7 @@
         "explore_for": 10,
         "steps_ahead": 2,
         "epsilon_decay_kind": "multiply",
-        "representation_kind": "log2",
+        "representation_kind": "one_hot",
         "_possible_decay_kinds": ["multiply", "exponential"],
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
