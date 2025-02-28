@@ -19,6 +19,7 @@ class Test2048Encoding(unittest.TestCase):
              [512, 1024, 2048, 0],
              [0, 2, 4, 8]]
         ])  # Shape: [2, 4, 4]
+        
         self.n_channels = int(np.log2(self.test_grid.max())) + 2
     
     def test_to_one_hot_shape(self):
