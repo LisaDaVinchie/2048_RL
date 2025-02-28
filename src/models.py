@@ -146,7 +146,13 @@ class Large_CNN(nn.Module):
         self.middle_channels = middle_channels if middle_channels is not None else config.get("middle_channels", (12, 12, 12, 12))
         self.kernel_sizes = kernel_sizes if kernel_sizes is not None else config.get("kernel_sizes", (2, 2, 2, 2))
         
-        self.conv1 = ConvBlock(self.n_channels, self.middle_channels[0], self.kernel_sizes)
+        self.representation_kind = get_representation_kind(params_path)
+        input_size = 1
+        
+        if self.representation_kind == "one_hot":
+            input_size *= self.n_channels
+        
+        self.conv1 = ConvBlock(input_size, self.middle_channels[0], self.kernel_sizes)
         self.conv2 = ConvBlock(self.middle_channels[0], self.middle_channels[1], self.kernel_sizes)
         self.conv3 = ConvBlock(self.middle_channels[1], self.middle_channels[2], self.kernel_sizes)
         self.dense1 = nn.Linear(self.middle_channels[2] * self.grid_size * self.grid_size, self.middle_channels[3])
