@@ -99,3 +99,11 @@ while i < n_games:
             if i < len(max_values) - 1:
                 f.write("\t")
         f.write("\n\n")
+        
+        f.write("Actions:\n")
+        for i, game_actions in enumerate(actions):
+            for j, action in enumerate(game_actions):
+                f.write(f"{action}")
+                if j < len(game_actions) - 1:
+                    f.write("\t")
+            f.write("\n")
