@@ -19,6 +19,7 @@ src/paths.json
 
 # Exclude results files
 data/results*
+data/weights/
 figs/figure*
 
 # Exclude operating system files
