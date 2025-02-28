@@ -114,7 +114,6 @@ class DQN_Agent:
             
             minibatch = random.sample(self.replay_buffer, self.batch_size)
             
-            
             # Extract experiences from the minibatch
             states = th.tensor(np.array([exp[0] for exp in minibatch]), dtype=th.float32)
             actions = th.LongTensor([exp[1] for exp in minibatch])
