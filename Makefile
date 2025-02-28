@@ -6,6 +6,7 @@ TEST_FOLDER = $(BASE_FOLDER)/test
 DATA_FOLDER = $(BASE_FOLDER)/data
 FIGS_FOLDER = $(BASE_FOLDER)/figs
 WEIGHTS_FOLDER = $(DATA_FOLDER)/weights
+RANDOM_RESULTS_FOLDER = $(DATA_FOLDER)/random_results
 
 PARAMS_FILE = $(SRC_FOLDER)/params.json
 PATHS_FILE = $(SRC_FOLDER)/paths.json
@@ -26,6 +27,9 @@ FINAL_RESULT_PATH = $(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$(IDX)$(RESULT_FILE_
 GRID_FILE_PATH = $(GRID_FILE_BASENAME)_$(IDX).txt
 WEIGHTS_FILE_PATH = $(WEIGHTS_BASENAME)_$(IDX)$(WEIGHTS_EXT)
 
+RANDOM_IDX=$(shell i=0; while [ -e "$(RANDOM_RESULTS_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
+FINAL_RANDOM_RESULT_PATH = $(RANDOM_RESULTS_FOLDER)/$(FINAL_RESULT_BASENAME)_$(RANDOM_IDX)$(RESULT_FILE_EXT)
+
 .PHONY: config train test plot help
 
 config:
@@ -37,7 +41,8 @@ config:
 	@echo "    \"figure_basename\": \"$(FIGS_FOLDER)/$(FIGS_BASENAME)\"," >> $(PATHS_FILE)
 	@echo "    \"figure_ext\": \"$(FIGS_EXT)\"," >> $(PATHS_FILE)
 	@echo "    \"grid_file_path\": \"$(GRID_FILE_PATH)\"," >> $(PATHS_FILE)
-	@echo "    \"weights_file_path\": \"$(WEIGHTS_FILE_PATH)\"" >> $(PATHS_FILE)
+	@echo "    \"weights_file_path\": \"$(WEIGHTS_FILE_PATH)\"," >> $(PATHS_FILE)
+	@echo "    \"random_result_path\": \"$(FINAL_RANDOM_RESULT_PATH)\"" >> $(PATHS_FILE)
 	@echo "}" >> $(PATHS_FILE)
 
 train: config
