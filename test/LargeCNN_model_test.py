@@ -1,5 +1,4 @@
 import torch as th
-from torch import nn
 import json
 from tempfile import NamedTemporaryFile
 from pathlib import Path
@@ -21,7 +20,10 @@ class TestLargeCNNModel(unittest.TestCase):
                 "action_size": 4,
                 "grid_size": 4,
                 "n_channels": 12
-            }      
+            },
+            "training": {
+                "representation_kind": "one_hot"
+            }
         }
         
         # Create a temporary file
@@ -43,27 +45,24 @@ class TestLargeCNNModel(unittest.TestCase):
         self.assertEqual(self.model.middle_channels, [128, 128, 128, 128])
         self.assertEqual(self.model.kernel_sizes, [1, 3, 5, 7])
     
-    def create_test_tensor(self, batch_size):
-        input_tensor = th.zeros((batch_size, 1, self.model.grid_size, self.model.grid_size))
-        possible_values = [0, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-        
-        for i in range(batch_size):
-            for j in range(self.model.grid_size):
-                for k in range(self.model.grid_size):
-                    input_tensor[i, 0, j, k] = th.tensor(possible_values[th.randint(0, len(possible_values), (1,)).item()])
-        
-        return input_tensor
+    def create_test_tensor(self, batch_size, n_channels):
+        tensor = th.zeros((batch_size, n_channels, 4, 4))
+        for b in range(batch_size):
+            for c in range(n_channels):
+                idx = th.randint(0, 16, (1,))
+                tensor[b, c, idx // 4, idx % 4] = 1
+        return tensor
         
     
     def test_forward_1tensor(self):
         batch_size = 1
-        input_tensor = self.create_test_tensor(batch_size)
+        input_tensor = self.create_test_tensor(batch_size, self.model.n_channels)
         output = self.model(input_tensor)
         self.assertEqual(output.size(), (batch_size, 4))
         
     def test_forward_many_tensor(self):
         batch_size = 10
-        input_tensor = self.create_test_tensor(batch_size)
+        input_tensor = self.create_test_tensor(batch_size, self.model.n_channels)
         output = self.model(input_tensor)
         self.assertEqual(output.size(), (batch_size, 4))
     
