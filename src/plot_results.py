@@ -31,9 +31,6 @@ else:
 print(f"Reading data from: {file_path}")
 final_scores, max_values, epsilons, loss = read_data(file_path)
 
-print(f"Final scores shape: {len(final_scores)}")
-print(f"Max values shape: {len(max_values)}")
-
 # Plot the data
 fig, axs = plt.subplots(2, 2, figsize=(10, 10), sharex=True)
 
