@@ -42,7 +42,7 @@ class TestDQNAgent(unittest.TestCase):
                 "explore_for": 500,
                 "epsilon_decay_kind": "multiply",
                 "steps_ahead": 2,
-                "tau": 0.007
+                "tau": 1
             }
         }
         
@@ -91,7 +91,7 @@ class TestDQNAgent(unittest.TestCase):
         self.assertEqual(self.agent.explore_for, 500)
         self.assertEqual(self.agent.epsilon_decay_kind, "multiply")
         self.assertEqual(self.agent.steps_ahead, 2)
-        self.assertEqual(self.agent.tau, 0.007)
+        self.assertEqual(self.agent.tau, 1)
         
 
     def test_choose_action(self):
@@ -128,7 +128,7 @@ class TestDQNAgent(unittest.TestCase):
         self.assertFalse(th.equal(initial_weights, self.agent.model.fc.weight))
         
         self.loss = self.agent.loss.item()
-        self.current_q_values = self.agent.current_q_values
+        self.current_q_values = self.agent.current_state_values
         self.assertIsInstance(self.loss, float)
         self.assertIsInstance(self.current_q_values, th.Tensor)
         self.assertFalse(np.isnan(self.loss))
