@@ -25,6 +25,7 @@ paths_file_path = args.paths
 with open(paths_file_path) as f:
     paths = json.load(f)
 final_score_path = paths["final_result_path"]
+weights_file_path = paths["weights_file_path"]
 
 params_file_path = args.params
 config = load_config(params_file_path, ["training"])
@@ -99,16 +100,15 @@ while len(agent.replay_buffer) < agent.batch_size:
     while not done:
         action = np.random.randint(0, 4)
         next_state, done, merge_reward = game_env.step(state, action)
-        reward = merge_reward
+        reward = merge_reward - old_reward
         
-        # if not done and np.array_equal(state, next_state):
-        #     reward -= 10
+        if not done and np.array_equal(state, next_state):
+            reward -= 10
             
         # Update the maximum value reached
-        # new_max = np.max(next_state)
-        # if new_max > max_value:
-        #     max_value = new_max
-        #     reward += new_max
+        new_max = np.max(next_state)
+        if new_max > max_value:
+            max_value = new_max
         
         stored_state = encode_function(state)
         stored_next_state = encode_function(next_state)
@@ -134,7 +134,7 @@ for episode in range(n_episodes):
     is_action_exploratory = [] # Initialize the list of exploratory actions
     
     agent.loss = None
-    agent.current_q_values = None
+    agent.current_state_values = None
     
     max_value = 0
     total_reward = 0 # Initialize the total reward
@@ -142,22 +142,22 @@ for episode in range(n_episodes):
     while not done:
         # Choose an action
         stored_state = encode_function(state)
-        action, is_exploratory = agent.choose_action(stored_state, training=True)
-        is_action_exploratory.append(is_exploratory) # Store the exploratory action
         
+        action, is_exploratory = agent.choose_action(stored_state, training=True)
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
+        reward = merge_reward - old_reward
         
-        reward = merge_reward
+        if np.array_equal(next_state, state) and not done:
+            reward -= -10
         
-        # if not done and np.array_equal(state, next_state):
-        #     reward -= 10
+        is_action_exploratory.append(is_exploratory) # Store the exploratory action
+        
         
         # Update the maximum value reached
-        # new_max = np.max(next_state)
-        # if new_max > max_value:
-        #     max_value = new_max
-        #     reward += new_max
+        new_max = np.max(next_state)
+        if new_max > max_value:
+            max_value = new_max
         
         if done:
             break
@@ -179,10 +179,11 @@ for episode in range(n_episodes):
     
     train_epsilon.append(agent.epsilon)
     train_loss.append(agent.loss)
-    train_Q_values.append(agent.current_q_values)
+    train_Q_values.append(agent.current_state_values)
     if (episode + 1) % print_every == 0:
-        print(f"Total reward: {total_reward}\n", flush=True)
-    
+        print(f"Average total reward: {np.sum(final_scores[-print_every:]) / print_every}", flush=True)
+        print(f"Average max value reached: {np.sum(max_value_reached[-print_every:]) / print_every}", flush=True)
+        
 elapsed_time = time() - start_time
 
 # Save the parameters to a file
@@ -225,6 +226,9 @@ with open(final_score_path, 'w') as f:
     
     f.write("Parameters:")
     f.write(json_str)
+    
+agent.save(weights_file_path)
+print("Model saved\n", flush=True) 
     
 print(f"Final scores saved to {final_score_path}\n", flush=True)
 
