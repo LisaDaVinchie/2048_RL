@@ -11,11 +11,14 @@ def to_one_hot(grid: np.ndarray, n_channels: int) -> np.ndarray:
     exponents = np.log2(grid, where=(grid > 0), out=np.zeros_like(grid, dtype=float)).astype(int)
     one_hot_grid = np.eye(n_channels, dtype=np.float32)[exponents]
 
-    return np.moveaxis(one_hot_grid, -1, 1)
+    return np.moveaxis(one_hot_grid, -1, 0)
 
 
 def from_one_hot(one_hot_grid: np.ndarray) -> np.ndarray:
-    exponents = np.argmax(one_hot_grid, axis=1)
+    """Reverse the one-hot encoded tensor back to the original grid values.
+    Takes as input a tensor of shape (n_channels, width, height).
+    """
+    exponents = np.argmax(one_hot_grid, axis=0)
     grid = 2 ** exponents
     grid[grid == 1] -= 1
     return grid
