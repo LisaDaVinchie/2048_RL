@@ -66,6 +66,14 @@ elif optimizer_kind == "rmsprop":
 else:
     raise ValueError("Invalid optimizer kind")
 
+# Initialise the agent
+
+agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
+n_channels = agent.n_channels
+# Initialise the game environment
+game_env = Game2048_env(size=agent.grid_size, n_channels=n_channels)
+print("Game environment initialised\n", flush=True)
+
 if representation_kind == "raw":
     encode_function = lambda x: x
     decode_function = lambda x: x
@@ -77,16 +85,6 @@ elif representation_kind == "one_hot":
     decode_function = lambda x: from_one_hot(x)
 else:
     raise ValueError("Invalid representation kind")
-
-# Initialise the agent
-
-agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
-n_channels = agent.n_channels
-
-grid_size = agent.grid_size
-# Initialise the game environment
-game_env = Game2048_env(size=grid_size)
-print("Game environment initialised\n", flush=True)
 
 print("Heat up the replay buffer\n", flush=True)
 # Heat up the replay buffer
