@@ -5,6 +5,7 @@ SRC_FOLDER = $(BASE_FOLDER)/src
 TEST_FOLDER = $(BASE_FOLDER)/test
 DATA_FOLDER = $(BASE_FOLDER)/data
 FIGS_FOLDER = $(BASE_FOLDER)/figs
+WEIGHTS_FOLDER = $(DATA_FOLDER)/weights
 
 PARAMS_FILE = $(SRC_FOLDER)/params.json
 PATHS_FILE = $(SRC_FOLDER)/paths.json
@@ -13,6 +14,8 @@ RESULT_FILE_EXT=.txt
 FIGS_BASENAME = figure
 FIGS_EXT=.png
 GRID_FILE_BASENAME = $(DATA_FOLDER)/grid
+WEIGHTS_BASENAME = $(WEIGHTS_FOLDER)/weights
+WEIGHTS_EXT = .pth
 
 
 # Name of the final result file
@@ -21,6 +24,7 @@ GRID_FILE_BASENAME = $(DATA_FOLDER)/grid
 IDX=$(shell i=0; while [ -e "$(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
 FINAL_RESULT_PATH = $(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$(IDX)$(RESULT_FILE_EXT)
 GRID_FILE_PATH = $(GRID_FILE_BASENAME)_$(IDX).txt
+WEIGHTS_FILE_PATH = $(WEIGHTS_BASENAME)_$(IDX)$(WEIGHTS_EXT)
 
 .PHONY: config train test plot help
 
@@ -32,7 +36,8 @@ config:
 	@echo "    \"final_result_path\": \"$(FINAL_RESULT_PATH)\"," >> $(PATHS_FILE)
 	@echo "    \"figure_basename\": \"$(FIGS_FOLDER)/$(FIGS_BASENAME)\"," >> $(PATHS_FILE)
 	@echo "    \"figure_ext\": \"$(FIGS_EXT)\"," >> $(PATHS_FILE)
-	@echo "    \"grid_file_path\": \"$(GRID_FILE_PATH)\"" >> $(PATHS_FILE)
+	@echo "    \"grid_file_path\": \"$(GRID_FILE_PATH)\"," >> $(PATHS_FILE)
+	@echo "    \"weights_file_path\": \"$(WEIGHTS_FILE_PATH)\"" >> $(PATHS_FILE)
 	@echo "}" >> $(PATHS_FILE)
 
 train: config
