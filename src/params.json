@@ -18,7 +18,7 @@
         "_possible_decay_kinds": ["multiply", "exponential"]
     },
     "training": {
-        "n_episodes": 300,
+        "n_episodes": 1000,
         "learning_rate": 0.00005,
         "print_every": 10,
         "model_kind": "large_cnn",
@@ -40,7 +40,7 @@
         "middle_channels": [1024, 1024, 1024]
     },
     "Large_CNN": {
-        "middle_channels": [512, 512, 512, 512],
+        "middle_channels": [128, 128, 128, 128],
         "kernel_sizes": [1, 2, 3, 4]
     },
     "actions": {
