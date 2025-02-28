@@ -4,10 +4,14 @@ import numpy as np
 def to_one_hot(grid: np.ndarray, n_channels: int) -> np.ndarray:
     # exponents = np.log2(grid, where=(grid > 0), out=np.zeros_like(grid, dtype=float)).astype(int)
     # one_hot_grid = np.eye(n_channels, dtype=np.float32)[exponents]
-    """Transform a batch of 2048 grids into a one-hot encoded tensor. Expects grid of shape (batch_size, width, height)."""
+    """Transform a batch of 2048 grids into a one-hot encoded tensor.
+    Expects grid of shape (batch_size, width, height).
+    Returns tensor of shape (batch_size, n_channels, width, height).
+    """
     exponents = np.log2(grid, where=(grid > 0), out=np.zeros_like(grid, dtype=float)).astype(int)
     one_hot_grid = np.eye(n_channels, dtype=np.float32)[exponents]
-    return np.moveaxis(one_hot_grid, -1, 0)
+
+    return np.moveaxis(one_hot_grid, -1, 1)
 
 
 def from_one_hot(one_hot_grid: np.ndarray) -> np.ndarray:
