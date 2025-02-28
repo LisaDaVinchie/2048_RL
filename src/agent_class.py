@@ -57,7 +57,7 @@ class DQN_Agent:
         self.optimizer = optimizer
         
         self.loss = None
-        self.current_q_values = None
+        self.current_state_values = None
 
     def _clone_model(self, model: nn.Module) -> nn.Module:
         """Properly clones a PyTorch model."""
@@ -66,23 +66,27 @@ class DQN_Agent:
         model_clone.eval()  # Set to eval mode (optional but recommended)
         return model_clone
         
+    # def store_to_buffer(self, state: np.ndarray, action: int, reward: int, next_state: np.ndarray, done: bool):
+    #     """Store the experience to the replay buffer as (state, action, reward, next_state, done)"""
+        
+    #     if state is None:
+    #         raise ValueError("State cannot be None")
+    #     if next_state is None:
+    #         raise ValueError("Next state cannot be None")
+        
+    #     self.n_step_buffer.append((state, action, reward, next_state, done))
+
+    #     # If we are using n-step learning, we need to wait until we have n steps
+    #     if done or len(self.n_step_buffer) == self.steps_ahead:
+    #         # Compute n-step reward
+    #         R = sum([self.n_step_buffer[i][2] * (self.gamma ** i) for i in range(len(self.n_step_buffer))])
+    #         state, action, _, next_state, done = self.n_step_buffer[0]  # Use the first transition
+    #         self.replay_buffer.append((state, action, R, next_state, done))
+    #         self.n_step_buffer.clear()
+    
     def store_to_buffer(self, state: np.ndarray, action: int, reward: int, next_state: np.ndarray, done: bool):
         """Store the experience to the replay buffer as (state, action, reward, next_state, done)"""
-        
-        if state is None:
-            raise ValueError("State cannot be None")
-        if next_state is None:
-            raise ValueError("Next state cannot be None")
-        
-        self.n_step_buffer.append((state, action, reward, next_state, done))
-
-        # If we are using n-step learning, we need to wait until we have n steps
-        if done or len(self.n_step_buffer) == self.steps_ahead:
-            # Compute n-step reward
-            R = sum([self.n_step_buffer[i][2] * (self.gamma ** i) for i in range(len(self.n_step_buffer))])
-            state, action, _, next_state, done = self.n_step_buffer[0]  # Use the first transition
-            self.replay_buffer.append((state, action, R, next_state, done))
-            self.n_step_buffer.clear()
+        self.replay_buffer.append((state, action, reward, next_state, done))
     
     def _compute_Q_values(self, states: th.tensor, actions: th.tensor, rewards: th.tensor, next_states: th.tensor, dones: th.tensor):
         """Compute the Q values for the current state and the target Q values"""
@@ -92,10 +96,9 @@ class DQN_Agent:
         
         non_terminal_mask = 1 - dones.float()
         # Q target
-        with th.no_grad():
-            next_q_values = (self.target_model(next_states).max(dim=1)[0]) * non_terminal_mask
-            # Compute the target Q values, discounting the future rewards
-            target_q_values = rewards + self.gamma * next_q_values * non_terminal_mask
+        next_q_values = (self.target_model(next_states).max(dim=1)[0]) * non_terminal_mask
+        # Compute the target Q values, discounting the future rewards
+        target_q_values = rewards + self.gamma * next_q_values * non_terminal_mask
             
         return current_q_values, target_q_values
     
@@ -119,8 +122,17 @@ class DQN_Agent:
             next_states = th.tensor(np.array([exp[3] for exp in minibatch]), dtype=th.float32)
             dones = th.BoolTensor([exp[4] for exp in minibatch])
             
-            self.current_q_values, target_q_values = self._compute_Q_values(states, actions, rewards, next_states, dones)
-            self.loss = self.loss_function(self.current_q_values, target_q_values)
+            # self.current_q_values, target_q_values = self._compute_Q_values(states, actions, rewards, next_states, dones)
+            
+            self.current_state_values = self.model(states).gather(1, actions.long().unsqueeze(1)).squeeze(1)
+        
+            non_terminal_mask = 1 - dones.float()
+            # Q target
+            next_q_values = (self.target_model(next_states).max(dim=1)[0]) * non_terminal_mask
+            # Compute the target Q values, discounting the future rewards
+            expected_q_values = rewards + self.gamma * next_q_values
+            
+            self.loss = self.loss_function(self.current_state_values, expected_q_values)
             
             # Compute the loss
             self.optimizer.zero_grad()
