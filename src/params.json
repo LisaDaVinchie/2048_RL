@@ -5,7 +5,7 @@
         "n_channels": 13,
         "gamma": 0.99,
         "epsilon": 0.9,
-        "epsilon_decay": 0.979,
+        "epsilon_decay": 0.998,
         "epsilon_min": 0.01,
         "tau": 0.01,
         "buffer_maxlen": 50000,
@@ -18,7 +18,7 @@
         "_possible_decay_kinds": ["multiply", "exponential"]
     },
     "training": {
-        "n_episodes": 1000,
+        "n_episodes": 4000,
         "learning_rate": 0.00005,
         "print_every": 10,
         "model_kind": "large_cnn",
@@ -30,8 +30,14 @@
         "_possible_optimizers": ["adam", "sgd", "rmsprop"],
         "_possible_representation_kinds": ["raw", "log2", "one_hot"]
     },
+    "test":{
+        "n_epispdes": 100,
+        "model_kind": "large_cnn",
+        "representation_kind": "one_hot",
+        "weight_number": 146
+    },
     "CNN_model": {
-        "middle_channels": [128, 128, 128, 64],
+        "middle_channels": [256, 256, 256, 256],
         "kernel_sizes": [1, 3, 5],
         "padding": [1, 1, 1],
         "softmax": false
@@ -53,6 +59,6 @@
         "max_tile_reward": 100,
         "empty_cells_reward": 5,
         "game_over_penalty": 1000,
-        "no_changes_penalty": 5
+        "no_changes_penalty": 10
     }
 }
