@@ -13,8 +13,8 @@ class DQN_Agent:
     - decision making
     - replay buffer
     - training"""
-    def __init__(self, params_path: Path, model: nn.Module, loss_function,
-                 optimizer: th.optim.Optimizer, grid_size: int = None,
+    def __init__(self, params_path: Path, model: nn.Module, loss_function: int = None,
+                 optimizer: th.optim.Optimizer = None, grid_size: int = None,
                  action_size: int = None, gamma: float = None,
                  epsilon: float = None, epsilon_decay: float = None,
                  epsilon_min: float = None, buffer_maxlen: int = None,
@@ -63,7 +63,7 @@ class DQN_Agent:
         """Properly clones a PyTorch model."""
         model_clone = copy.deepcopy(model)  # Deep copy ensures all parameters are new
         model_clone.load_state_dict(model.state_dict())  # Copy weights
-        model_clone.eval()  # Set to eval mode (optional but recommended)
+        model_clone.eval()  # Set to eval mode
         return model_clone
         
     # def store_to_buffer(self, state: np.ndarray, action: int, reward: int, next_state: np.ndarray, done: bool):
@@ -165,11 +165,11 @@ class DQN_Agent:
         for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
             target_param.data.copy_(self.tau * param.data + (1.0 - self.tau) * target_param.data)
         
-    def save(self, path):
+    def save(self, path: Path):
         """Save the model weights"""
         th.save(self.model.state_dict(), path)
         
-    def load(self, path):
+    def load(self, path: Path):
         """Load the model weights"""
         self.model.load_state_dict(th.load(path))
         self.target_model.load_state_dict(self.model.state_dict())
