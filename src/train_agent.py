@@ -39,6 +39,12 @@ optimizer_kind: str = None
 representation_kind: str = None
 locals().update(config["training"])
 
+config = load_config(params_file_path, ["rewards"])
+no_changes_penalty = config["rewards"]["no_changes_penalty"]
+
+print("No changes penalty: ", no_changes_penalty)
+
+
 # Initialise the model
 if model_kind == "linear":
     model = LinearModel(params_file_path)
@@ -101,7 +107,7 @@ while len(agent.replay_buffer) < agent.batch_size:
         reward = merge_reward - old_reward
         
         if not done and np.array_equal(state, next_state):
-            reward -= 10
+            reward += -no_changes_penalty
             
         # Update the maximum value reached
         new_max = np.max(next_state)
@@ -121,6 +127,7 @@ max_value_reached = []
 train_epsilon = []
 train_loss = []
 train_Q_values = []
+useless_moves_perc = []
 
 print("Training the agent\n", flush=True)
 for episode in range(n_episodes):
@@ -137,17 +144,22 @@ for episode in range(n_episodes):
     max_value = 0
     total_reward = 0 # Initialize the total reward
     old_reward = 0
+    
+    n_no_move: int = 0
+    n_moves: int = 0
     while not done:
         # Choose an action
         stored_state = encode_function(state)
         
         action, is_exploratory = agent.choose_action(stored_state, training=True)
+        n_moves += 1
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
         reward = merge_reward - old_reward
         
         if np.array_equal(next_state, state) and not done:
-            reward -= -10
+            reward += -no_changes_penalty
+            n_no_move += 1
         
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
         
@@ -171,6 +183,7 @@ for episode in range(n_episodes):
     # Store the final score
     final_scores.append(total_reward)
     max_value_reached.append(max_value)
+    useless_moves_perc.append(n_no_move / n_moves)
     
     # Train the model
     agent.train_step(episode)
@@ -180,7 +193,7 @@ for episode in range(n_episodes):
     train_Q_values.append(agent.current_state_values)
     if (episode + 1) % print_every == 0:
         print(f"Average total reward: {np.sum(final_scores[-print_every:]) / print_every}", flush=True)
-        print(f"Average max value reached: {np.sum(max_value_reached[-print_every:]) / print_every}", flush=True)
+        print(f"Average max value reached: {np.sum(max_value_reached[-print_every:]) / print_every}\n", flush=True)
         
 elapsed_time = time() - start_time
 
@@ -197,24 +210,35 @@ with open(final_score_path, 'w') as f:
     f.write('Time taken [s]: ')
     f.write(str(elapsed_time))
     f.write('\n\n')
+    
     f.write("Final score:\n")
     for i, score in enumerate(final_scores):
         f.write(f"{score}")
         if i < len(final_scores) - 1:
             f.write("\t")
     f.write("\n\n")
+    
     f.write("Max value reached:\n")
     for i, value in enumerate(max_value_reached):
         f.write(f"{value}")
         if i < len(max_value_reached) - 1:
             f.write("\t")
     f.write("\n\n")
+    
+    f.write("Useless moves:\n")
+    for i, moves in enumerate(useless_moves_perc):
+        f.write(f"{moves}")
+        if i < len(useless_moves_perc) - 1:
+            f.write("\t")
+    f.write("\n\n")
+    
     f.write("Epsilon:\n")
     for i, eps in enumerate(train_epsilon):
         f.write(f"{eps}")
         if i < len(train_epsilon) - 1:
             f.write("\t")
     f.write("\n\n")
+    
     f.write("Loss:\n")
     for i, loss in enumerate(train_loss):
         f.write(f"{loss}")
