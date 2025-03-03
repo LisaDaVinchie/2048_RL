@@ -7,6 +7,7 @@ DATA_FOLDER = $(BASE_FOLDER)/data
 FIGS_FOLDER = $(BASE_FOLDER)/figs
 WEIGHTS_FOLDER = $(DATA_FOLDER)/weights
 RANDOM_RESULTS_FOLDER = $(DATA_FOLDER)/random_results
+AUTOPLAY_FOLDER = $(DATA_FOLDER)/autoplay
 
 PARAMS_FILE = $(SRC_FOLDER)/params.json
 PATHS_FILE = $(SRC_FOLDER)/paths.json
@@ -15,8 +16,9 @@ RESULT_FILE_EXT=.txt
 FIGS_BASENAME = figure
 FIGS_EXT=.png
 GRID_FILE_BASENAME = $(DATA_FOLDER)/grid
-WEIGHTS_BASENAME = $(WEIGHTS_FOLDER)/weights
+WEIGHTS_BASENAME = weights
 WEIGHTS_EXT = .pth
+AUTOPLAY_BASENAME = autoplay
 
 
 # Name of the final result file
@@ -25,12 +27,15 @@ WEIGHTS_EXT = .pth
 IDX=$(shell i=0; while [ -e "$(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
 FINAL_RESULT_PATH = $(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$(IDX)$(RESULT_FILE_EXT)
 GRID_FILE_PATH = $(GRID_FILE_BASENAME)_$(IDX).txt
-WEIGHTS_FILE_PATH = $(WEIGHTS_BASENAME)_$(IDX)$(WEIGHTS_EXT)
+WEIGHTS_FILE_PATH = $(WEIGHTS_FOLDER)/$(WEIGHTS_BASENAME)_$(IDX)$(WEIGHTS_EXT)
 
 RANDOM_IDX=$(shell i=0; while [ -e "$(RANDOM_RESULTS_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
 FINAL_RANDOM_RESULT_PATH = $(RANDOM_RESULTS_FOLDER)/$(FINAL_RESULT_BASENAME)_$(RANDOM_IDX)$(RESULT_FILE_EXT)
 
-.PHONY: config train test plot help
+AUTOPLAY_IDX=$(shell i=0; while [ -e "$(AUTOPLAY_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
+AUTOPLAY_PATH = $(AUTOPLAY_FOLDER)/$(FINAL_RESULT_BASENAME)_$(AUTOPLAY_IDX)$(RESULT_FILE_EXT)
+
+.PHONY: config train test plot autoplay random help
 
 config:
 	@echo "Configuring paths..."
@@ -41,8 +46,13 @@ config:
 	@echo "    \"figure_basename\": \"$(FIGS_FOLDER)/$(FIGS_BASENAME)\"," >> $(PATHS_FILE)
 	@echo "    \"figure_ext\": \"$(FIGS_EXT)\"," >> $(PATHS_FILE)
 	@echo "    \"grid_file_path\": \"$(GRID_FILE_PATH)\"," >> $(PATHS_FILE)
+	@echo "    \"weights_folder\": \"$(WEIGHTS_FOLDER)\"," >> $(PATHS_FILE)
+	@echo "    \"weights_basename\": \"$(WEIGHTS_FOLDER)/$(WEIGHTS_BASENAME)\"," >> $(PATHS_FILE)
+	@echo "    \"weights_ext\": \"$(WEIGHTS_EXT)\"," >> $(PATHS_FILE)
 	@echo "    \"weights_file_path\": \"$(WEIGHTS_FILE_PATH)\"," >> $(PATHS_FILE)
-	@echo "    \"random_result_path\": \"$(FINAL_RANDOM_RESULT_PATH)\"" >> $(PATHS_FILE)
+	@echo "    \"random_result_path\": \"$(FINAL_RANDOM_RESULT_PATH)\", " >> $(PATHS_FILE)
+	@echo "    \"random_results_folder\": \"$(RANDOM_RESULTS_FOLDER)\"," >> $(PATHS_FILE)
+	@echo "    \"autoplay_path\": \"$(AUTOPLAY_PATH)\"" >> $(PATHS_FILE)
 	@echo "}" >> $(PATHS_FILE)
 
 train: config
@@ -56,6 +66,14 @@ test:
 plot: config
 	@echo "Plotting results..."
 	$(PYTHON) $(SRC_FOLDER)/plot_results.py --paths $(PATHS_FILE)
+
+random: config
+	@echo "Running random agent..."
+	$(PYTHON) $(SRC_FOLDER)/play_random_game.py --params $(PARAMS_FILE) --paths $(PATHS_FILE)
+
+autoplay: config
+	@echo "Running autoplay agent..."
+	$(PYTHON) $(SRC_FOLDER)/play_game_trained_model.py --params $(PARAMS_FILE) --paths $(PATHS_FILE)
 
 help:
 	@echo "Usage: make [target]"
