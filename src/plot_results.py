@@ -29,7 +29,7 @@ else:
     file_path, IDX = find_latest_file(final_result_basename, result_file_ext)
 
 print(f"Reading data from: {file_path}")
-final_scores, max_values, epsilons, loss = read_data(file_path)
+final_scores, max_values, epsilons, loss, useless_moves = read_data(file_path)
 
 # Plot the data
 fig, axs = plt.subplots(2, 2, figsize=(10, 10), sharex=True)
@@ -48,8 +48,13 @@ axs[1, 0].set_title("Epsilon")
 axs[1, 0].set_xlabel("Episode")
 axs[1, 0].set_ylabel("Value")
 
-axs[1, 1].plot(loss)
-axs[1, 1].set_title("Loss")
+# axs[1, 1].plot(loss)
+# axs[1, 1].set_title("Loss")
+# axs[1, 1].set_xlabel("Episode")
+# axs[1, 1].set_ylabel("Value")
+
+axs[1, 1].plot(useless_moves)
+axs[1, 1].set_title("Useless Moves")
 axs[1, 1].set_xlabel("Episode")
 axs[1, 1].set_ylabel("Value")
 
