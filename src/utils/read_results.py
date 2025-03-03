@@ -10,6 +10,7 @@ def read_data(file_path: Path):
     max_values = []
     epsilon = []
     loss = []
+    useless_moves = []
 
     # Iterate through lines
     for i, line in enumerate(lines):
@@ -21,8 +22,10 @@ def read_data(file_path: Path):
             epsilon = list(map(float, lines[i+1].split()))
         elif line.startswith("Loss:"):
             loss = list(map(float, lines[i+1].split()))
+        elif line.startswith("Useless moves:"):
+            useless_moves = list(map(float, lines[i+1].split()))
 
-    return final_scores, max_values, epsilon, loss
+    return final_scores, max_values, epsilon, loss, useless_moves
 
 # Find the path with the greatest index
 def find_latest_file(basepath: Path, result_file_ext: str = ".txt") -> list:
