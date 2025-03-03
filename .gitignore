@@ -18,8 +18,7 @@ logs/
 src/paths.json
 
 # Exclude results files
-data/results*
-data/weights/
+data/
 figs/figure*
 
 # Exclude operating system files
