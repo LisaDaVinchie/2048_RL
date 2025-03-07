@@ -6,6 +6,8 @@ src/params.json
 src/*.ipynb
 !src/test_agent.ipynb
 
+runs/
+
 **/*.swp
 
 RL_venv/
@@ -19,7 +21,10 @@ logs/
 src/paths.json
 
 # Exclude results files
-data/
+data/*.txt
+data/weights/*
+!data/results_171.txt
+!data/weights/weights_171.pth
 figs/figure*
 !figs/figure_171.png
 
