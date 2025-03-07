@@ -29,8 +29,33 @@ else:
     file_path, IDX = find_latest_file(final_result_basename, result_file_ext)
 
 print(f"Reading data from: {file_path}")
-final_scores, max_values, epsilons, loss, useless_moves = read_data(file_path)
+# final_scores, max_values, epsilons, loss, useless_moves = read_data(file_path)
 
+with open(file_path, "r") as f:
+    lines = f.readlines()
+
+# Extract the values after each section header
+final_scores = []
+max_values = []
+epsilon = []
+loss = []
+useless_moves = []
+valid_moves = []
+
+# Iterate through lines
+for i, line in enumerate(lines):
+    if line.startswith("Final score:"):
+        final_scores = list(map(float, lines[i+1].split()))
+    elif line.startswith("Max value reached:"):
+        max_values = list(map(float, lines[i+1].split()))
+    elif line.startswith("Epsilon:"):
+        epsilon = list(map(float, lines[i+1].split()))
+    elif line.startswith("Loss:"):
+        loss = list(map(float, lines[i+1].split()))
+    elif line.startswith("Useless moves:"):
+        useless_moves = list(map(float, lines[i+1].split()))
+    elif line.startswith("Valid moves:"):
+        valid_moves = list(map(float, lines[i+1].split()))
 # Plot the data
 fig, axs = plt.subplots(2, 2, figsize=(10, 10), sharex=True)
 
@@ -43,17 +68,14 @@ axs[0, 1].set_title("Max Value reached")
 axs[0, 1].set_ylabel("Log2(Value)")
 axs[0, 1].set_yticks(range(int(min(np.log2(max_values))), int(max(np.log2(max_values))) + 1))
 
-axs[1, 0].plot(epsilons)
+axs[1, 0].plot(epsilon)
 axs[1, 0].set_title("Epsilon")
 axs[1, 0].set_xlabel("Episode")
 axs[1, 0].set_ylabel("Value")
 
-# axs[1, 1].plot(loss)
-# axs[1, 1].set_title("Loss")
-# axs[1, 1].set_xlabel("Episode")
-# axs[1, 1].set_ylabel("Value")
+useless_moves_ratio = np.array(useless_moves) / (np.array(valid_moves) + np.array(useless_moves))
 
-axs[1, 1].plot(useless_moves)
+axs[1, 1].plot(useless_moves_ratio)
 axs[1, 1].set_title("Useless Moves")
 axs[1, 1].set_xlabel("Episode")
 axs[1, 1].set_ylabel("Value")
