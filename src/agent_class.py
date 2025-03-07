@@ -65,24 +65,6 @@ class DQN_Agent:
         model_clone.load_state_dict(model.state_dict())  # Copy weights
         model_clone.eval()  # Set to eval mode
         return model_clone
-        
-    # def store_to_buffer(self, state: np.ndarray, action: int, reward: int, next_state: np.ndarray, done: bool):
-    #     """Store the experience to the replay buffer as (state, action, reward, next_state, done)"""
-        
-    #     if state is None:
-    #         raise ValueError("State cannot be None")
-    #     if next_state is None:
-    #         raise ValueError("Next state cannot be None")
-        
-    #     self.n_step_buffer.append((state, action, reward, next_state, done))
-
-    #     # If we are using n-step learning, we need to wait until we have n steps
-    #     if done or len(self.n_step_buffer) == self.steps_ahead:
-    #         # Compute n-step reward
-    #         R = sum([self.n_step_buffer[i][2] * (self.gamma ** i) for i in range(len(self.n_step_buffer))])
-    #         state, action, _, next_state, done = self.n_step_buffer[0]  # Use the first transition
-    #         self.replay_buffer.append((state, action, R, next_state, done))
-    #         self.n_step_buffer.clear()
     
     def store_to_buffer(self, state: np.ndarray, action: int, reward: int, next_state: np.ndarray, done: bool):
         """Store the experience to the replay buffer as (state, action, reward, next_state, done)"""
@@ -150,7 +132,6 @@ class DQN_Agent:
         
         if training and np.random.rand() <= self.epsilon:
             # Exploration: return a random number between 0 and 4
-            # return a random number between 0 and 4
             action = np.random.choice(self.action_size)
             is_exploration = True
         else:
@@ -162,8 +143,13 @@ class DQN_Agent:
             
     def _update_target_model_weights(self):
         """Update the target model"""
-        for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
-            target_param.data.copy_(self.tau * param.data + (1.0 - self.tau) * target_param.data)
+        # Soft update
+        # for target_param, param in zip(self.target_model.parameters(), self.model.parameters()):
+        #     # target_param.data.copy_(self.tau * param.data + (1.0 - self.tau) * target_param.data)
+        #     target_param.load_state_dict()
+        
+        self.target_model.load_state_dict(self.model.state_dict())
+        self.model.train()
         
     def save(self, path: Path):
         """Save the model weights"""
