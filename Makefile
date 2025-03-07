@@ -23,7 +23,7 @@ AUTOPLAY_BASENAME = autoplay
 
 # Name of the final result file
 
-# Find the nRESULT_FILE_EXT available filename
+# Find the available filename
 IDX=$(shell i=0; while [ -e "$(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$$i$(RESULT_FILE_EXT)" ]; do i=$$((i+1)); done; echo "$$i")
 FINAL_RESULT_PATH = $(DATA_FOLDER)/$(FINAL_RESULT_BASENAME)_$(IDX)$(RESULT_FILE_EXT)
 GRID_FILE_PATH = $(GRID_FILE_BASENAME)_$(IDX).txt
@@ -52,7 +52,8 @@ config:
 	@echo "    \"weights_file_path\": \"$(WEIGHTS_FILE_PATH)\"," >> $(PATHS_FILE)
 	@echo "    \"random_result_path\": \"$(FINAL_RANDOM_RESULT_PATH)\", " >> $(PATHS_FILE)
 	@echo "    \"random_results_folder\": \"$(RANDOM_RESULTS_FOLDER)\"," >> $(PATHS_FILE)
-	@echo "    \"autoplay_path\": \"$(AUTOPLAY_PATH)\"" >> $(PATHS_FILE)
+	@echo "    \"autoplay_folder\": \"$(AUTOPLAY_FOLDER)\"," >> $(PATHS_FILE)
+	@echo "    \"autoplay_basename\": \"$(AUTOPLAY_BASENAME)\"" >> $(PATHS_FILE)
 	@echo "}" >> $(PATHS_FILE)
 
 train: config
@@ -83,3 +84,7 @@ help:
 	@echo "  train: Train the model"
 	@echo "  test: Run tests"
 	@echo "  help: Show this help message"
+	@echo "  plot: Plot results"
+	@echo "  random: Run random agent"
+	@echo "  autoplay: Run autoplay agent"
+	@echo ""
