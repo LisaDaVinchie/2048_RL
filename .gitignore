@@ -4,6 +4,7 @@ venv*
 src/params.json
 
 src/*.ipynb
+!src/test_agent.ipynb
 
 **/*.swp
 
@@ -20,6 +21,7 @@ src/paths.json
 # Exclude results files
 data/
 figs/figure*
+!figs/figure_171.png
 
 # Exclude operating system files
 **/.DS_Store
