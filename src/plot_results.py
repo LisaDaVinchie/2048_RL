@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from utils.read_results import read_data
 from pathlib import Path
 import numpy as np
 import json
