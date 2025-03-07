@@ -100,7 +100,7 @@ class LinearModel(nn.Module):
         self.activation = nn.ReLU()
         
     def forward(self, x: th.Tensor) -> th.Tensor:
-        x = x.view(x.size(0), -1)
+        x = x.reshape(x.size(0), -1)
         
         x = self.fc1(x)
         x = self.activation(x)
