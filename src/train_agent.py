@@ -6,13 +6,11 @@ import json
 from time import time
 
 from utils.import_params_json import load_config
-from utils.visualize_game import print_grid
+# from utils.visualize_game import print_grid # Optionally print the grid
 from utils.representations import to_one_hot, from_one_hot, to_log2, from_log2
 from agent_class import DQN_Agent # Import the DQN_Agent class
 from models import CNN_model, LinearModel, Large_CNN # Import the neural network model class
 from game_class import Game2048_env # Import the game class
-# from rewards import maxN_emptycells_reward, original_reward, maxN_emptycells_merge_reward, log2_merge_reward, sum_maxval_reward
-# reward_function = original_reward
 start_time = time()
 
 # Load the configuration file
@@ -77,7 +75,7 @@ else:
 agent = DQN_Agent(params_file_path, model, loss_function, optimizer)
 n_channels = agent.n_channels
 # Initialise the game environment
-game_env = Game2048_env(size=agent.grid_size, n_channels=n_channels)
+game_env = Game2048_env(size=agent.grid_size)
 print("Game environment initialised\n", flush=True)
 
 if representation_kind == "raw":
@@ -92,42 +90,13 @@ elif representation_kind == "one_hot":
 else:
     raise ValueError("Invalid representation kind")
 
-print("Heat up the replay buffer\n", flush=True)
-# Heat up the replay buffer
-i = 0
-while len(agent.replay_buffer) < agent.batch_size:
-    state = game_env.reset()
-    done = False
-    i += 1
-    max_value = 0
-    old_reward = 0
-    while not done:
-        action = np.random.randint(0, 4)
-        next_state, done, merge_reward = game_env.step(state, action)
-        reward = merge_reward - old_reward
-        
-        if not done and np.array_equal(state, next_state):
-            reward += -no_changes_penalty
-            
-        # Update the maximum value reached
-        new_max = np.max(next_state)
-        if new_max > max_value:
-            max_value = new_max
-        
-        stored_state = encode_function(state)
-        stored_next_state = encode_function(next_state)
-        agent.store_to_buffer(stored_state, action, reward, stored_next_state, done)
-        if done:
-            break
-        state = next_state
-        old_reward = reward
-
 final_scores = []
 max_value_reached = []
 train_epsilon = []
 train_loss = []
 train_Q_values = []
-useless_moves_perc = []
+non_valid_moves = []
+valid_moves = []
 
 print("Training the agent\n", flush=True)
 for episode in range(n_episodes):
@@ -145,45 +114,58 @@ for episode in range(n_episodes):
     total_reward = 0 # Initialize the total reward
     old_reward = 0
     
-    n_no_move: int = 0
-    n_moves: int = 0
+    old_avg = np.mean(state)
+    new_avg = 0
+    
+    n_non_valid_moves: int = 0
+    n_valid_moves: int = 0
     while not done:
         # Choose an action
         stored_state = encode_function(state)
         
         action, is_exploratory = agent.choose_action(stored_state, training=True)
-        n_moves += 1
+        
         # Take the action and observe the next state and reward
         next_state, done, merge_reward = game_env.step(state, action)
-        reward = merge_reward - old_reward
+        reward = merge_reward
+        old_reward = merge_reward
         
-        if np.array_equal(next_state, state) and not done:
-            reward += -no_changes_penalty
-            n_no_move += 1
+        if done:
+            next_state = None
+        
+        if np.array_equal(next_state, state) and next_state is not None:
+            reward += -10
+            n_non_valid_moves += 1
+        else:
+            n_valid_moves += 1
         
         is_action_exploratory.append(is_exploratory) # Store the exploratory action
         
         
         # Update the maximum value reached
         new_max = np.max(next_state)
-        if new_max > max_value:
+        if next_state is not None and new_max > max_value:
             max_value = new_max
+        # if new_avg > old_avg:
+        #     old_avg = new_avg
+        #     reward += np.log2(new_avg)
         
         if done:
             break
         
-        old_reward = reward
         stored_next_state = encode_function(next_state)
         agent.store_to_buffer(stored_state, action, reward, stored_next_state, done)
         
         
         total_reward += reward # Update the total reward
         state = next_state # Update the state
+        
     
     # Store the final score
     final_scores.append(total_reward)
     max_value_reached.append(max_value)
-    useless_moves_perc.append(n_no_move / n_moves)
+    non_valid_moves.append(n_non_valid_moves)
+    valid_moves.append(n_valid_moves)
     
     # Train the model
     agent.train_step(episode)
@@ -226,9 +208,16 @@ with open(final_score_path, 'w') as f:
     f.write("\n\n")
     
     f.write("Useless moves:\n")
-    for i, moves in enumerate(useless_moves_perc):
+    for i, moves in enumerate(non_valid_moves):
         f.write(f"{moves}")
-        if i < len(useless_moves_perc) - 1:
+        if i < len(non_valid_moves) - 1:
+            f.write("\t")
+    f.write("\n\n")
+    
+    f.write("Valid moves:\n")
+    for i, moves in enumerate(valid_moves):
+        f.write(f"{moves}")
+        if i < len(valid_moves) - 1:
             f.write("\t")
     f.write("\n\n")
     
