@@ -12,7 +12,7 @@ def get_representation_kind(params_path: Path, representation_kind: str = None) 
 class CNN_model(nn.Module):
     def __init__(self, params_path: Path, grid_size: int = None, action_size: int = None,
                  n_channels: int = None, middle_channels: Tuple[int, int, int, int] = None, kernel_sizes: Tuple[int, int, int] = None,
-                 padding: Tuple[int, int, int] = None, softmax: bool = None, representation_kind: str = None):
+                 padding: Tuple[int, int, int] = None, representation_kind: str = None):
         super(CNN_model, self).__init__()
         
         model_params = load_config(params_path, ["agent"]).get("agent", {})
@@ -24,7 +24,6 @@ class CNN_model(nn.Module):
         self.middle_channels = middle_channels if middle_channels is not None else model_params.get("middle_channels", (16, 32, 64, 128))
         self.kernel_sizes = kernel_sizes if kernel_sizes is not None else model_params.get("kernel_sizes", (2, 2, 2))
         self.padding = padding if padding is not None else model_params.get("padding", (1, 1, 1))
-        self.softmax = softmax if softmax is not None else model_params.get("softmax", True)
         self.representation_kind = get_representation_kind(params_path, representation_kind)
         
         self.in_channels = 1
